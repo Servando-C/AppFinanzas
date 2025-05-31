@@ -17,8 +17,9 @@ import AppTheme from '../../theme/AppTheme';
 import ColorModeSelect from '../../theme/ColorModeSelect';
 import WebhookIcon from '@mui/icons-material/Webhook';
 import ForgotPassword from '../layout/ForgotPassword';
-import GoogleIcon from '@mui/icons-material/Google';
-import FacebookIcon from '@mui/icons-material/Facebook';
+import SvgIcon from '@mui/icons-material/Webhook';
+import CopoIconLight from '../../assets/logo-ligh.svg?react';
+
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -122,7 +123,13 @@ export default function Login(props) {
       <SignInContainer direction="column" justifyContent="space-between">
         <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
         <Card variant="outlined">
-          <WebhookIcon />
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+          <SvgIcon component={CopoIconLight}
+            inheritViewBox 
+            sx={{ width: 'auto', height: 30}}
+            color='primary'/>
+          </Box>
+          
           <Typography
             component="h1"
             variant="h4"
