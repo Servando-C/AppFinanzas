@@ -89,7 +89,7 @@ class proyecto(db.Model):
     #Atributos de la tabla
     nombre = db.Column(db.String(40), nullable=False)
     fecha_creacion = db.Column(db.Date, nullable=False)
-    capital_dispoible = db.Column(db.Numeric(12,2), nullable=False)
+    capital_disponible = db.Column(db.Numeric(12,2), nullable=False)
 
     #Relaciones con otros objetos
     empresa = db.relationship('empresa', backref=db.backref('empresa_proyecto')) #VERIFICAR SI SE DEBE USAR DYNAMIC U OTRO PARAM  EN LAZY
@@ -108,7 +108,7 @@ class statusAdquisicion(db.Model):
     #Atributos de la tabla
     clave = db.Column(db.String(40), nullable=False)
     descripcion = db.Column(db.String(80), nullable=False)
-    activo = db.Column(db.Numeric(1, 0), nullable=False)
+    activo = db.Column(db.Boolean, nullable=False, default=False)
 
     #Función para recrear el objeto en texto, se usará su ID principal y el atributo más característico de la clase
     def __repr__(self):
@@ -143,7 +143,7 @@ class financiamiento(db.Model):
 
     #Atributos de la tabla
     fuente = db.Column(db.String(40), nullable=False)
-    procentaje = db.Column(db.Numeric(5, 2), nullable=False)
+    porcentaje = db.Column(db.Numeric(5, 2), nullable=False)
     monto_financiado = db.Column(db.Numeric(14, 2), nullable=False)
 
     #Atributos de la tabla que son foreignKeys desde otras tablas 
@@ -188,7 +188,7 @@ class estadoDeResultado(db.Model):
     __tablename__='ESTADO_RESULTADO'
 
     #Clave primaria
-    estado_resultado_id = db.Column(db.Numeric(10, 0), primary_Key=True)
+    estado_resultado_id = db.Column(db.Numeric(10, 0), primary_key=True)
 
     #Atributos de la tabla
     anio = db.Column(db.Numeric(4, 0), nullable=False)
@@ -205,7 +205,7 @@ class estadoDeResultado(db.Model):
 
     #Relaciones con otros objetos
     proyecto  = db.relationship('proyecto', foreign_keys=[proyecto_id])
-    empresa  = db.relationship('adquisicion', foreign_keys=[empresa_id])
+    empresa  = db.relationship('empresa', foreign_keys=[empresa_id])
 
     #Función para recrear el objeto en texto, se usará su ID principal y el atributo más característico de la clase
     def __repr__(self):
@@ -221,8 +221,8 @@ class adquisicion(db.Model):
     monto_total = db.Column(db.Numeric(17, 2), nullable=False)
     monto_inicial = db.Column(db.Numeric(17, 2), nullable=False)
     fecha_adquisicion = db.Column(db.Date, nullable=False)
-    numeros_pagos = db.Column(db.Numeric(2, 0), nullable=False)
-    anios_pagos = db.Column(db.Numeric(2, 0), nullable=False)
+    numero_pagos = db.Column(db.Numeric(2, 0), nullable=True)
+    anios_pagos = db.Column(db.Numeric(2, 0), nullable=True)
 
     #Atributos de la tabla que son foreignKeys desde otras tablas 
     proyecto_id = db.Column(db.Numeric(10, 0), db.ForeignKey('PROYECTO.proyecto_id'), nullable=False)
@@ -233,7 +233,7 @@ class adquisicion(db.Model):
 
     #Relaciones con otros objetos
     proyecto  = db.relationship('proyecto', foreign_keys=[proyecto_id])
-    empresa  = db.relationship('adquisicion', foreign_keys=[empresa_id])
+    empresa  = db.relationship('empresa', foreign_keys=[empresa_id])
     bien = db.relationship('bien', foreign_keys=[bien_id])
     pago = db.relationship('formaDePago', foreign_keys=[forma_pago_id])
     status = db.relationship('statusAdquisicion', foreign_keys=[status_adquisicion_id])
@@ -260,7 +260,7 @@ class reporte(db.Model):
 
     #Relaciones con otros objetos
     proyecto  = db.relationship('proyecto', foreign_keys=[proyecto_id])
-    empresa  = db.relationship('adquisicion', foreign_keys=[empresa_id])
+    empresa  = db.relationship('empresa', foreign_keys=[empresa_id])
 
     #Función para recrear el objeto en texto, se usará su ID principal y el atributo más característico de la clase
     def __repr__(self):
@@ -286,7 +286,7 @@ class tesoreria(db.Model):
 
     #Relaciones con otros objetos
     proyecto  = db.relationship('proyecto', foreign_keys=[proyecto_id])
-    empresa  = db.relationship('adquisicion', foreign_keys=[empresa_id])
+    empresa  = db.relationship('empresa', foreign_keys=[empresa_id])
 
 
     #Función para recrear el objeto en texto, se usará su ID principal y el atributo más característico de la clase
