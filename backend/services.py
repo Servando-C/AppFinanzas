@@ -78,6 +78,7 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
 
         try:
             fecha_creacion_obj = datetime.datetime.strptime(fecha_creacion_str, '%Y-%m-%d').date()
+            capital_asignado_decimal = Decimal(capital_inicial_asignado_str)
         except ValueError:
             return {"error": "Formato de fecha_creacion incorrecto. Usar YYYY-MM-DD."}, 400
 
@@ -95,30 +96,126 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
             capital_disponible=capital_asignado
         )
         db.session.add(nuevo_proy)
+        db.session.flush()
+
+        if capital_asignado_decimal > Decimal('0.00'):
+            registrar_o_actualizar_tesoreria(
+                proyecto_id_param=nuevo_proy.proyecto_id,
+                empresa_id_param=empresa_obj.empresa_id,
+                fecha_movimiento=fecha_creacion_obj,
+                monto_entrada_mov=capital_asignado_decimal,
+                monto_salida_mov=Decimal('0.00'),
+                descripcion_mov=f"Capital inicial para proyecto: {nombre_proyecto}",
+                observaciones_mov="Registro automático por creación de proyecto"
+            )
+
         db.session.commit()
 
-        # Opcional: Crear un registro inicial en tesorería si el capital se considera "recibido"
-        # registrar_movimiento_tesoreria(
-        #     proyecto_id=nuevo_proy.proyecto_id, # Necesitaríamos el ID generado
-        #     empresa_id=empresa_obj.empresa_id,
-        #     tipo_movimiento="ENTRADA_CAPITAL_INICIAL",
-        #     monto=capital_asignado,
-        #     descripcion=f"Capital inicial para proyecto {nombre_proyecto}",
-        #     fecha_registro_mov=fecha_creacion_obj
-        # )
-
         return {
-            "mensaje": "Proyecto creado exitosamente",
+            "mensaje": "Proyecto creado y capital inicial registrado en tesorería.",
             "proyecto": {
-                "proyecto_id": float(nuevo_proy.proyecto_id), # Asumiendo que se genera
+                "proyecto_id": float(nuevo_proy.proyecto_id),
                 "empresa_id": float(nuevo_proy.empresa_id),
-                "nombre": nuevo_proy.nombre
+                "nombre": nuevo_proy.nombre,
+                "capital_inicial_registrado_tesoreria": str(capital_asignado_decimal) if capital_asignado_decimal > Decimal('0.00') else "0.00"
             }
         }, 201
     except Exception as e:
         db.session.rollback()
         print(f"Error en nuevo_proyecto: {str(e)}")
         return {"error": f"Error interno al crear el proyecto: {str(e)}"}, 500.
+
+def registrar_o_actualizar_tesoreria(
+    proyecto_id_param,
+    empresa_id_param,
+    fecha_movimiento, # objeto date
+    monto_entrada_mov, # Decimal
+    monto_salida_mov,  # Decimal
+    descripcion_mov,
+    observaciones_mov=None
+):
+    """
+    Registra un movimiento de tesorería creando un nuevo snapshot o actualizando
+    uno existente para la misma fecha.
+    Maneja los acumulados de entradas, salidas y el monto disponible.
+    """
+    try:
+        # Validar que el proyecto exista
+        proyecto_obj = proyecto.query.filter_by(
+            proyecto_id=proyecto_id_param,
+            empresa_id=empresa_id_param
+        ).first()
+        if not proyecto_obj:
+            raise ValueError(f"Proyecto con id {proyecto_id_param} para empresa {empresa_id_param} no encontrado.")
+
+        monto_entrada_mov = Decimal(monto_entrada_mov)
+        monto_salida_mov = Decimal(monto_salida_mov)
+
+        # Buscar el snapshot de tesorería más reciente o antes de la fecha_movimiento
+        ultimo_snapshot_tesoreria = tesoreria.query.filter(
+            tesoreria.proyecto_id == proyecto_obj.proyecto_id,
+            tesoreria.empresa_id == proyecto_obj.empresa_id,
+            tesoreria.fecha_registro <= fecha_movimiento
+        ).order_by(tesoreria.fecha_registro.desc(), tesoreria.tesoreria_id.desc()).first() # Ordenar por ID si hay varios en misma fecha
+
+        monto_disponible_previo = Decimal('0.00')
+        monto_entradas_acum_previo = Decimal('0.00')
+        monto_salidas_acum_previo = Decimal('0.00')
+
+        if ultimo_snapshot_tesoreria:
+            monto_disponible_previo = Decimal(ultimo_snapshot_tesoreria.monto_disponible)
+            monto_entradas_acum_previo = Decimal(ultimo_snapshot_tesoreria.monto_entradas)
+            monto_salidas_acum_previo = Decimal(ultimo_snapshot_tesoreria.monto_salidas)
+
+        # Determinar si se actualiza un snapshot del mismo día o se crea uno nuevo
+        snapshot_del_dia_a_actualizar = None
+        if ultimo_snapshot_tesoreria and ultimo_snapshot_tesoreria.fecha_registro == fecha_movimiento:
+            snapshot_del_dia_a_actualizar = ultimo_snapshot_tesoreria
+        
+        if snapshot_del_dia_a_actualizar:
+            # Actualizar el snapshot existente para esta fecha
+            snapshot_del_dia_a_actualizar.monto_entradas = monto_entradas_acum_previo + monto_entrada_mov
+            snapshot_del_dia_a_actualizar.monto_salidas = monto_salidas_acum_previo + monto_salida_mov
+            snapshot_del_dia_a_actualizar.monto_disponible = monto_disponible_previo + monto_entrada_mov - monto_salida_mov
+            snapshot_del_dia_a_actualizar.descripcion = descripcion_mov 
+            snapshot_del_dia_a_actualizar.observaciones = observaciones_mov
+            print(f"Actualizando tesorería para P:{proyecto_obj.proyecto_id}, F:{fecha_movimiento}")
+        else:
+            # Crear un nuevo snapshot de tesorería
+            # Si el ultimo_snapshot_tesoreria es de una fecha anterior, usamos sus acumulados como base.
+            # Si no hay ultimo_snapshot_tesoreria, los previos son 0.
+            nuevo_monto_entradas_acum = monto_entradas_acum_previo + monto_entrada_mov
+            nuevo_monto_salidas_acum = monto_salidas_acum_previo + monto_salida_mov
+            nuevo_monto_disponible = monto_disponible_previo + monto_entrada_mov - monto_salida_mov
+            
+            # Si el ultimo_snapshot_tesoreria es de una fecha estrictamente anterior,
+            # el monto_disponible_previo ya es el correcto para iniciar el cálculo del nuevo día.
+            # Si no hay ultimo_snapshot, monto_disponible_previo es 0.
+
+            nuevo_snapshot = tesoreria(
+                descripcion=descripcion_mov,
+                monto_disponible=nuevo_monto_disponible,
+                monto_entradas=nuevo_monto_entradas_acum,
+                monto_salidas=nuevo_monto_salidas_acum,
+                fecha_registro=fecha_movimiento,
+                observaciones=observaciones_mov,
+                proyecto_id=proyecto_obj.proyecto_id,
+                empresa_id=proyecto_obj.empresa_id
+            )
+            db.session.add(nuevo_snapshot)
+            print(f"Creando nuevo snapshot de tesorería para P:{proyecto_obj.proyecto_id}, F:{fecha_movimiento}")
+        
+        # El commit se hará en la función que llama a esta, ej. nuevo_proyecto o agregar_adquisicion
+        return True # O el objeto tesorería creado/actualizado
+
+    except ValueError as ve:
+        print(f"Error de validación en tesorería: {str(ve)}")
+        raise ve # Relanzar para que la función que llama maneje el rollback y la respuesta
+    except Exception as e:
+        print(f"Error en registrar_o_actualizar_tesoreria: {str(e)}")
+        # import traceback
+        # traceback.print_exc()
+        raise e # Relanzar para que la función que llama maneje el rollback y la respuesta
 
 def get_or_create_bien(nombre_bien, tipo_bien_param, desc_tipo):
     """Busca un bien por nombre y tipo, si no existe, lo crea."""
@@ -167,7 +264,7 @@ def get_default_status_adquisicion():
 def agregar_adquisicion(
     empresa_id_param, proyecto_id_param,
     nombre_bien_param, tipo_bien_param, desc_tipo_bien_param,
-    monto_total_str, fecha_adquisicion_str,
+    monto_total_str, monto_inicial_str, fecha_adquisicion_str,
     forma_pago_char_param,
     meses_pago_param, numero_pagos_param, # meses_pago es el antiguo anios_pagos
     tiene_financiamiento=False, #Los siguientes parametros se ponene por default en none, por si no hay financiamiento
@@ -188,10 +285,14 @@ def agregar_adquisicion(
         # Convertir y validar datos numéricos y de fecha
         try:
             monto_total = Decimal(monto_total_str)
+            monto_inicial = Decimal(monto_inicial_str)
             fecha_adquisicion = datetime.datetime.strptime(fecha_adquisicion_str, '%Y-%m-%d').date()
         except (ValueError, TypeError) as e:
             return {"error": f"Error en formato de monto, fecha o pagos: {e}"}, 400
-
+        
+        if monto_inicial > monto_total:
+            raise ValueError("El monto inicial no puede ser mayor al monto total.")
+        
         # 1. Obtener/Crear Bien
         bien_obj = get_or_create_bien(nombre_bien_param, tipo_bien_param, desc_tipo_bien_param)
 
@@ -205,7 +306,7 @@ def agregar_adquisicion(
         # Se asume de momento, como para el resto de inserciones que el id es autoincremental
         nueva_adq = adquisicion(
             monto_total=monto_total,
-            monto_inicial=Decimal('0.00'), # El ERD tiene monto_inicial, ¿cómo se determina? Por ahora 0.
+            monto_inicial=monto_inicial,
             fecha_adquisicion=fecha_adquisicion,
             numero_pagos=numero_pagos_param, # Tu modelo lo tiene como Numeric(2,0)
             anios_pagos=meses_pago_param, # Usando anios_pagos para meses_pago de momento
@@ -229,7 +330,7 @@ def agregar_adquisicion(
                  db.session.rollback()
                  return {"error": "Monto de financiamiento debe ser un número o el porcentaje es incorrecto."}, 400
 
-            if monto_financiado > Decimal('0.00'):
+            if monto_total == monto_inicial + monto_financiado: #Se valida que todos los montos cuadren para añadir el financiamiento
                 # una vez más, se asume el id autoincremental
                 nuevo_fin = financiamiento(
                     fuente=fuente_financiamiento_param,
@@ -239,6 +340,18 @@ def agregar_adquisicion(
                 )
                 db.session.add(nuevo_fin)
                 financiamiento_creado = nuevo_fin
+
+           #ASUMO QUE E SERÁ EFECTIVO EN "FORMA_PAGO" PERO LES DEBO PREGUNTAR 
+            if forma_pago_obj.tipo == 'E' and monto_inicial > Decimal('0.00'):
+                registrar_o_actualizar_tesoreria(
+                    proyecto_id_param=nueva_adq.proyecto_id,
+                    empresa_id_param=nueva_adq.empresa_id,
+                    fecha_movimiento=fecha_adquisicion,
+                    monto_entrada_mov=Decimal('0.00'),
+                    monto_salida_mov=monto_inicial, # El pago inicial sale de tesorería
+                    descripcion_mov=f"Pago inicial adquisición: {bien_obj.nombre}",
+                    observaciones_mov=f"Adquisición ID: {nueva_adq.adquisicion_id}"
+                )
 
         #SE HACE COMMIT AQUÍ PARA TODOS LOS INSERTS DE LAS FUNCIONES USADAS, Y LOS QUE SE REALIZAN EN ESTA MISMA
         db.session.commit()
@@ -253,7 +366,7 @@ def agregar_adquisicion(
             adq_data["financiamiento_id"] = float(financiamiento_creado.financiamiento_id)
             adq_data["monto_financiado"] = str(financiamiento_creado.monto_financiado)
 
-        return {"mensaje": "Adquisición agregada exitosamente", "adquisicion": adq_data}, 201
+        return {"mensaje": "Adquisición agregada y movimiento de tesorería (si aplica) registrado.", "adquisicion": adq_data}, 201
 
     except ValueError as ve: # Errores de validación 
         db.session.rollback()
