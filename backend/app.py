@@ -4,6 +4,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from flask_cors import CORS
+from .database import db
+from .reports.routes import reportes_bp
 
 load_dotenv()
 
@@ -19,7 +21,7 @@ db_name = os.getenv('DB_NAME')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app) # db se inicializa aquí
+db.init_app(app)
 
 @app.route('/')
 def home():
@@ -33,6 +35,8 @@ def test_db_connection():
         return "¡Conexión a la base de datos exitosa!"
     except Exception as e:
         return f"Error al conectar a la base de datos: {str(e)}"
+
+app.register_blueprint(reportes_bp) #Llama a los endpoints involucrados en la generación de reportes
 
 if __name__ == '__main__':
     with app.app_context(): # Necesario para operaciones de BD fuera de una request
