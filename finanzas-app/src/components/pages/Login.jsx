@@ -26,13 +26,13 @@ const Card = styled(MuiCard)(({ theme }) => ({
   gap: theme.spacing(2),
   margin: 'auto',
   boxShadow:
-    'hsla(225, 72.70%, 44.50%, 0.05) 0px 5px 15px 0px, hsla(222, 93.70%, 37.50%, 0.05) 0px 15px 35px -5px',
+    'hsla(225, 75.90%, 39.00%, 0.10) 0px 5px 15px 0px, hsla(225, 75.90%, 39.00%, 0.1) 0px 4px 30px 10px',
   [theme.breakpoints.up('sm')]: {
     width: '450px',
   },
   ...theme.applyStyles('dark', {
     boxShadow:
-      'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
+      'hsla(209, 68.60%, 43.70%, 0.1) 0px 5px 15px 0px, hsla(209, 68.60%, 43.70%, 0.1) 0px 4px 30px 10px',
   }),
 }));
 
