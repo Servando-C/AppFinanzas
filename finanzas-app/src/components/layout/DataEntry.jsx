@@ -5,6 +5,8 @@ import FormLabel from '@mui/material/FormLabel';
 import Grid from '@mui/material/Grid';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
+import DatePicker from './DatePicker'
+import BasicDateField from './DatePicker';
 
 const FormGrid = styled(Grid)(() => ({
   display: 'flex',
@@ -14,33 +16,32 @@ const FormGrid = styled(Grid)(() => ({
 export default function DataEntry() {
   return (
     <Grid container spacing={3}>
-      <FormGrid size={{ xs: 12, md: 6 }}>
+      <FormGrid size={{ xs: 12}}>
         <FormLabel htmlFor="first-name" required>
-          First name
+          Company name or client
         </FormLabel>
         <OutlinedInput
-          id="first-name"
-          name="first-name"
+          id="client-name"
+          name="client-name"
           type="name"
-          placeholder="John"
+          placeholder="Mondelez International"
           autoComplete="first name"
           required
           size="small"
         />
       </FormGrid>
-      <FormGrid size={{ xs: 12, md: 6 }}>
-        <FormLabel htmlFor="last-name" required>
-          Last name
+      <FormGrid size={{ xs: 6 }}>
+      <FormLabel htmlFor="start-date" required>
+          Initial date
         </FormLabel>
-        <OutlinedInput
-          id="last-name"
-          name="last-name"
-          type="last-name"
-          placeholder="Snow"
-          autoComplete="last name"
-          required
-          size="small"
-        />
+      <BasicDateField/>
+
+      </FormGrid>
+      <FormGrid size={{ xs: 6 }}>
+      <FormLabel htmlFor="end-date" required>
+          End date
+        </FormLabel>
+      <BasicDateField/>
       </FormGrid>
       <FormGrid size={{ xs: 12 }}>
         <FormLabel htmlFor="address1" required>

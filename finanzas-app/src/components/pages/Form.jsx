@@ -9,7 +9,7 @@ import DataEntry from "../layout/DataEntry";
 import Confirmation from "../layout/Confirmation";
 import Success from "../layout/Success";
 
-const steps = ['Shipping address', 'Payment details', 'Review your order'];
+const steps = ['Data entry', 'Confirmation', 'Success'];
 function getStepContent(step) {
   switch (step) {
     case 0:
