@@ -8,9 +8,9 @@ import SignUp from "../components/pages/SignUp";
 export const AppRoutes = () => {
     return (
         <Routes>
-            <Route path="/" element={<Login/>} />
+            <Route path="/login" element={<Login/>} />
             <Route path="/form" element={<Form />} />
-            <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/" element={<AboutUs />} />
             <Route path="/signup" element={<SignUp />} />
         </Routes>
     );
