@@ -24,9 +24,6 @@ CLASIFICACION_ACTIVOS = {
 #EN ESTE ARCHIVO ESTARÁ LA LÓGICA DE NEGOCIO COMO FUNCIONES, LAS FUNCIONES CORE ES RECIBIR UNA NUEVA ADQUISICION Y EL CALCULO DEL BALANCE,
 #EL CALCULO DEL BALANCE DEBE EJECUTARSE SIEMPRE QUE SE PIDE O SE PIDE GENERAR UN REPORTE
 
-# backend/services.py
-# ... (importaciones y constantes) ...
-
 def nueva_empresa(nombre_empresa, dueño_empresa, correo_empresa, telefono_empresa, direccion_empresa, rfc_empresa):
     """Crea una nueva empresa y la guarda en la base de datos."""
     try:
