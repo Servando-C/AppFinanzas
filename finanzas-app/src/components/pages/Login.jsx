@@ -110,7 +110,7 @@ export default function Login(props) {
       <CssBaseline enableColorScheme/>
       <AppAppBar/>
       <SignInContainer>
-        <Card sx={{ mt: 'calc(var(--template-frame-height, 0px) + 45px)'}}>
+        <Card sx={{ mt: 'calc(var(--template-frame-height, 0px) + 50px)'}}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
           <SvgIcon component={CopoIconLight}
             inheritViewBox 
