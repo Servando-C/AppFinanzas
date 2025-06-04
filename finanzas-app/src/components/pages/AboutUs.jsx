@@ -75,7 +75,6 @@ export default function AboutUs(props) {
         <AppTheme>
             <CssBaseline enableColorScheme/>
             <FinancialNewsTicker />
-
             <AppAppBar sx={{ mt: 10 }} />
             <Content />
             <FAQ />

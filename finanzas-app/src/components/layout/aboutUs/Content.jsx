@@ -8,9 +8,13 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import visuallyHidden from '@mui/utils/visuallyHidden';
-import { styled } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
+import logo from '../../../assets/logo-ligh.svg?react';
+import SvgIcon from '@mui/icons-material/Webhook';
+
 
 export default function Content() {
+
   return (
     <Box>
       <Container
@@ -108,13 +112,40 @@ export default function Content() {
           </Typography>
         </Stack>
         <Stack
-          spacing={6} // Espacio entre cada sección (Historia, Misión, Visión)
-          sx={{
-            width: { xs: '100%', md: '80%'}, // Ancho del bloque de contenido de estas secciones
-            textAlign: 'left', // Alineación del texto para mejor legibilidad de párrafos
-          }}
+          spacing={2}
+          useFlexGap
+          sx={{ alignItems: 'center', mt: 10, width: { xs: '100%', sm: '70%' } }}
         >
           {/* Nuestra Historia */}
+          
+            <Typography
+            variant="h1"
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              fontSize: 'clamp(2.5rem, 10vw, 3rem)',
+            }}
+          >
+            About&nbsp;
+            <Typography
+              component="span"
+              variant="h1"
+              sx={(theme) => ({
+                fontSize: 'inherit',
+                color: 'primary.main',
+                ...theme.applyStyles('dark', {
+                  color: 'primary.light',
+                }),
+              })}
+            >
+               us
+            </Typography>
+          </Typography>
+          <SvgIcon component={logo}
+            inheritViewBox
+            sx={{ width: 'auto', height: 100, alignSelf: 'center', mt: 4}}
+            color='primary' />
           <Box>
             <Typography
               variant="h4" // O h2, h3 según tu jerarquía semántica
@@ -122,15 +153,16 @@ export default function Content() {
               sx={{
                 fontWeight: 'bold',
                 mb: 2, // Margen inferior para separar del párrafo
-                textAlign: 'justify', // Título centrado
+                textAlign: 'center', // Título centrado
                 color: 'text.primary',
                 mt: 4, // Margen superior para separar del encabezado principal
+                fontSize: 'clamp(1rem, 10vw, 2rem)',
               }}
             >
               Our Story
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-              Founded from a shared passion for efficiency and clarity, we noticed a common challenge: professionals struggled to concisely articulate the impact of their work. Traditional methods were often time-consuming and didn't always capture the true value delivered. Driven by the belief that "the best way to do it" involves smart tools, we embarked on a mission to create a cutting-edge results statement generator. Our journey has been one of innovation, user-focused design, and a relentless pursuit of quality to help you showcase your achievements effortlessly.
+            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
+              Founded in 2018 in Mexico City by a team of bankers and developers passionate about data, Snowflakes was born with the mission to crystallize companies' financial information. After launching its first analytics engine in the cloud in 2020, the firm connected more than 1 200 companies across Latin America in an ecosystem where financial statements are as clear as fresh snow.
             </Typography>
           </Box>
 
@@ -144,12 +176,13 @@ export default function Content() {
                 mb: 2,
                 textAlign: 'center',
                 color: 'text.primary',
+                fontSize: 'clamp(1rem, 10vw, 2rem)',
               }}
             >
               Our Mission
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-              To empower professionals and organizations by providing an intuitive and powerful platform for crafting compelling result statements. We aim to simplify the process of quantifying achievements and communicating impact, enabling our users to effectively highlight their contributions, secure opportunities, and drive success.
+            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
+              Democratize access to clear, real-time, quality audited financial information, so that every company - regardless of size - can make informed decisions that drive responsible and sustainable growth.
             </Typography>
           </Box>
 
@@ -163,16 +196,16 @@ export default function Content() {
                 mb: 2,
                 textAlign: 'center',
                 color: 'text.primary',
+                fontSize: 'clamp(1rem, 10vw, 2rem)',
               }}
             >
               Our Vision
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-              To be the leading solution for results-oriented communication, recognized globally for transforming how achievements are documented and shared. We envision a future where every professional can clearly and confidently articulate their value, fostering a world of greater recognition, collaboration, and continuous improvement.
+            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>
+              To be the Latin American platform of reference where transparency and financial intelligence combine to foster resilient, prosperous and socially conscious organizations
             </Typography>
           </Box>
         </Stack>
-        {/* <StyledBox id="image" /> */}
       </Container>
     </Box>
   );
