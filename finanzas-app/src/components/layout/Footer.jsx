@@ -18,7 +18,7 @@ function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
       {'Copyright © '}
-      <Link color="text.secondary" href="https://mui.com/">
+      <Link color="text.secondary" href="https://coposolutions.com" target="_blank" rel="noopener">
         Coposolutions
       </Link>
       &nbsp;
@@ -193,7 +193,7 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://github.com/mui"
+            href="https://github.com/"
             aria-label="GitHub"
             sx={{ alignSelf: 'center' }}
           >
@@ -202,7 +202,7 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://x.com/MaterialUI"
+            href="https://x.com/"
             aria-label="X"
             sx={{ alignSelf: 'center' }}
           >
@@ -211,7 +211,7 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://www.linkedin.com/company/mui/"
+            href="https://www.linkedin.com/"
             aria-label="LinkedIn"
             sx={{ alignSelf: 'center' }}
           >
