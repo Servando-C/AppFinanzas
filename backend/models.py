@@ -1,5 +1,5 @@
 # backend/models.py
-from .app import db # Se importa la instancia abierta de la 'db' de app.py para crear las clases usando el modelo de la DB
+from .database import db # Se importa la instancia abierta de la 'db' de app.py para crear las clases usando el modelo de la DB
 
 #SE DEBEN PONER LOS MISMOS NOMBRES QUE EN LOS CAMPOS DE DB, VERIFICAR SI ES SENSIBLE A MAYUSCULAS O MINUSCULAS  LA DB
 class empresa(db.Model):

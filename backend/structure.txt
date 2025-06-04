@@ -1,0 +1,20 @@
+.
+├── app.py
+├── auth
+│   ├── __init__.py
+│   └── routes.py
+├── models.py
+├── reports
+│   ├── __init__.py
+│   └── routes.py
+├── requirements.txt
+├── services.py
+├── structure.txt
+└── venv
+    ├── bin
+    ├── include
+    ├── lib
+    ├── lib64 -> lib
+    └── pyvenv.cfg
+
+8 directories, 10 files
