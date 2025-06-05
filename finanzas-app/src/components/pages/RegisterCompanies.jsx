@@ -13,7 +13,6 @@ import {
   Alert,
 } from "@mui/material";
 
-// Ticker de noticias
 function FinancialNewsTicker() {
   const [headlines, setHeadlines] = useState([]);
 
@@ -41,7 +40,7 @@ function FinancialNewsTicker() {
         sx={{
           display: "inline-block",
           whiteSpace: "nowrap",
-          animation: "ticker 120s linear infinite",
+          animation: "ticker 30s linear infinite",
         }}
       >
         {tickerContent.map((text, idx) => (
@@ -72,23 +71,37 @@ export default function RegisterCompanies() {
     rfc: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError(""); // Limpiar error al escribir
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+    setError("");
   };
 
   const validateFields = () => {
+    const newErrors = {};
     for (const key in form) {
       if (form[key].trim() === "") {
-        setError("Por favor completa todos los campos antes de enviar.");
-        return false;
+        newErrors[key] = "Este campo es obligatorio.";
       }
     }
-    return true;
+
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (form.correo && !correoRegex.test(form.correo)) {
+      newErrors.correo = "Correo electrónico no válido.";
+    }
+
+    const telefonoRegex = /^[0-9]{7,15}$/;
+    if (form.telefono && !telefonoRegex.test(form.telefono)) {
+      newErrors.telefono = "Teléfono inválido (solo números, 7-15 dígitos).";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -112,6 +125,7 @@ export default function RegisterCompanies() {
           direccion: "",
           rfc: "",
         });
+        setErrors({});
         setError("");
       } else {
         setError("Hubo un error al enviar los datos al servidor.");
@@ -139,15 +153,24 @@ export default function RegisterCompanies() {
         )}
 
         <Box component="form" noValidate autoComplete="off">
-          {["nombre", "dueno", "correo", "telefono", "direccion", "rfc"].map((field) => (
+          {[
+            { name: "nombre", label: "Nombre" },
+            { name: "dueno", label: "Dueño" },
+            { name: "correo", label: "Correo" },
+            { name: "telefono", label: "Teléfono" },
+            { name: "direccion", label: "Dirección" },
+            { name: "rfc", label: "RFC" },
+          ].map(({ name, label }) => (
             <TextField
-              key={field}
+              key={name}
               fullWidth
               margin="normal"
-              label={field.charAt(0).toUpperCase() + field.slice(1)}
-              name={field}
-              value={form[field]}
+              label={label}
+              name={name}
+              value={form[name]}
               onChange={handleChange}
+              error={Boolean(errors[name])}
+              helperText={errors[name]}
             />
           ))}
           <Box textAlign="center" mt={3}>
@@ -164,7 +187,6 @@ export default function RegisterCompanies() {
         </Box>
       </Container>
 
-      {/* Diálogo de confirmación */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>¿Estás seguro?</DialogTitle>
         <DialogContent>¿Seguro que los datos son correctos?</DialogContent>
@@ -176,7 +198,6 @@ export default function RegisterCompanies() {
         </DialogActions>
       </Dialog>
 
-      {/* Notificación de éxito */}
       <Snackbar
         open={successOpen}
         autoHideDuration={3000}
