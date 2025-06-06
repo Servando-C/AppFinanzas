@@ -12,6 +12,9 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import AppTheme from '../../theme/AppTheme';
 import ForgotPassword from '../layout/ForgotPassword';
+import GoogleIcon from '@mui/icons-material/Google';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import { useNavigate } from 'react-router-dom'
 import SvgIcon from '@mui/icons-material/Webhook';
 import CopoIconLight from '../../assets/logo-ligh.svg?react';
 import AppAppBar from '../layout/aboutUs/AppBar';
@@ -66,16 +69,41 @@ export default function Login(props) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+  const handleSubmit = async (event) => {
+  event.preventDefault();
+
+  if (!validateInputs()) {
+    return;
+  }
+
+  const data = new FormData(event.currentTarget);
+  const email = data.get('email');
+  const password = data.get('password');
+
+  try {
+    const response = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username: email, password }),
     });
+
+    if (!response.ok) {
+      throw new Error('Usuario o contraseña incorrectos');
+    }
+
+    const result = await response.json();
+    const token = result.access_token;
+
+    localStorage.setItem('token', token);
+
+    // Redirección
+    navigate('/dashboard');
+
+  } catch (error) {
+    alert(error.message);
+  }
   };
 
   const validateInputs = () => {

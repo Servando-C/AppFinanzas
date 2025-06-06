@@ -6,11 +6,19 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 from .database import db
 from .reports.routes import reportes_bp
+from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = "tu_clave_secreta_aqui"
+jwt = JWTManager(app)
+
 CORS(app)
+
+USERS = {"usuario1@gmail.com": "password123"}
 
 db_user = os.getenv('DB_USER')
 db_password = os.getenv('DB_PASSWORD')
@@ -21,11 +29,24 @@ db_name = os.getenv('DB_NAME')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db.init_app(app)
+# db.init_app(app)
+# db = SQLAlchemy(app) # db se inicializa aquí
+
 
 @app.route('/')
 def home():
     return "¡El archivo principal del backend esta funcionando"
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if username in USERS and USERS[username] == password:
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token), 200
+    return jsonify(msg="Usuario o contraseña incorrectos"), 401
 
 @app.route('/test_db')
 def test_db_connection():
