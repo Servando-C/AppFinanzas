@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -60,6 +61,7 @@ export default function Login(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -77,16 +79,16 @@ export default function Login(props) {
   }
 
   const data = new FormData(event.currentTarget);
-  const email = data.get('email');
+  const correo = data.get('correo');
   const password = data.get('password');
 
   try {
-    const response = await fetch('http://localhost:5000/login', {
+    const response = await fetch('http://localhost:5000/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username: email, password }),
+      body: JSON.stringify({ username: correo, password }),
     });
 
     if (!response.ok) {

@@ -18,7 +18,7 @@ export const AppRoutes = () => {
             <Route path="/form" element={<Form />} />
             <Route path="/" element={<AboutUs />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/RegisterCompanies" element={<RegisterCompanies />} /
+            <Route path="/RegisterCompanies" element={<RegisterCompanies/>} />
         </Routes>
     );
 }

@@ -121,7 +121,7 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
     except Exception as e:
         db.session.rollback()
         print(f"Error en nuevo_proyecto: {str(e)}")
-        return {"error": f"Error interno al crear el proyecto: {str(e)}"}, 500.
+        return {"error": f"Error interno al crear el proyecto: {str(e)}"}, 500
 
 # backend/services.py
 # ... (importaciones y constantes como las tienes o ajustadas) ...
@@ -390,8 +390,31 @@ def agregar_adquisicion(
         # Considera loggear el traceback completo aquí para depuración: import traceback; traceback.print_exc()
         return {"error": f"Error interno al agregar la adquisición: {str(e)}"}, 500
 
-def calcular_balance_general(empresa_id, proyecto_id):
-    return
+def calcular_balance_general(empresa_id, proyecto_id, fecha_str):
+
+    #VALIDACIONES
+
+    #HACER CONSULTA CON LA FECHA PARA TRAER TODAS LAS TESORERIAS Y ADQUISICONES HASTA CIERTA FECHA
+
+    #HACER UN CICLO DONDE FECHA POR FECHA DE MENOR A MAYOR SE VAYA CALCULANDO EL BALANCE CON LAS ADQUISICIONES
+        #AL INICIO EL PRESUPUESTO DEL PROYECTO O PRIMER TESOERIA, IRIA A ACTIVOS DE EFECTIVO Y TAMBIÉN EN CAPITAL CONTABLE
+        #POR CADA ITERACIÓN ES DECIR ADQUISICION SE IRÁ CALCULANDO EL BALANCE CON TESORERIA, LA ADQUISICIÓN Y EL PASIVO SI FUE FINANCIADA
+        #GUARDAR EL DESGLOSE DE CADA ITERACIÓN EN ALGO PARA PODER DESGLOSAR POR FECHA U ADQUISICIÓN EL BALANCE EN EL PDF
+    
+    #HACER EL INSERTE EN LA TABLA DE BALANCE CON EL RESULTADO FINAL
+
+    #HACER EL RETURN DEL ENDPOINT
+     
+    #REGRESAR ERRORES SI HAY
+
+    try:
+        #validación para ver si la empresa y el proyecto existen
+        proyecto_val = select(proyecto).where(proyecto.proyecto_id == proyecto_id and proyecto.empresa_id == empresa_id)
+        c=5
+    except Exception as ve: #errores de validación
+        return {"error": str(ve)}, 400
+    except Exception as e: #error en la base de datos
+        return {"error": f"Error interno al agregar la adquisición: {str(e)}"}, 500
 
 def get_balance_actual():
     return
