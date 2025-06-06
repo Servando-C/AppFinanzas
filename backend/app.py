@@ -15,7 +15,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "tu_clave_secreta_aqui"
-jwt = JWTManager(app)
+jwt = JWTManager(app) #para gestionar el login y contraseñas
 
 CORS(app)
 
