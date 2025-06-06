@@ -48,7 +48,6 @@ def nueva_empresa(nombre_empresa, dueño_empresa, correo_empresa, telefono_empre
         )
 
         #VER SI EL ID SE GENERA SOLO EN LA BASE DE DATOS O SI SE DEBE HACER ALGO
-
         db.session.add(nueva_emp)
         db.session.commit()
         return {
@@ -320,7 +319,7 @@ def agregar_adquisicion(
         # Se asume de momento, como para el resto de inserciones que el id es autoincremental
         nueva_adq = adquisicion(
             monto_total=monto_total,
-            enagnche=monto_inicial,
+            enganche=monto_inicial,
             fecha_adquisicion=fecha_adquisicion,
             numero_pagos=numero_pagos_param, # Tu modelo lo tiene como Numeric(2,0)
             meses_pagos=meses_pago_param, # Usando anios_pagos para meses_pago de momento
