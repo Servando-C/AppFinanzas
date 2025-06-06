@@ -19,7 +19,7 @@ TIPOS_BIEN_ACTIVOS = [
     TIPO_BIEN_INMUEBLES,
     TIPO_BIEN_MUEBLES_EQUIPOS,
     TIPO_BIEN_INVENTARIO,
-    TIPO_BIEN_GASTO,
+    #TIPO_BIEN_GASTO, QUITADO TEMPORALMENTE
     TIPO_BIEN_CUENTAS_POR_COBRAR # Incluir si se implementa en MVP
 ]
 
@@ -122,9 +122,6 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
         db.session.rollback()
         print(f"Error en nuevo_proyecto: {str(e)}")
         return {"error": f"Error interno al crear el proyecto: {str(e)}"}, 500
-
-# backend/services.py
-# ... (importaciones y constantes como las tienes o ajustadas) ...
 
 def registrar_o_actualizar_tesoreria(
     proyecto_id_param,
@@ -392,29 +389,131 @@ def agregar_adquisicion(
 
 def calcular_balance_general(empresa_id, proyecto_id, fecha_str):
 
-    #VALIDACIONES
-
-    #HACER CONSULTA CON LA FECHA PARA TRAER TODAS LAS TESORERIAS Y ADQUISICONES HASTA CIERTA FECHA
-
-    #HACER UN CICLO DONDE FECHA POR FECHA DE MENOR A MAYOR SE VAYA CALCULANDO EL BALANCE CON LAS ADQUISICIONES
-        #AL INICIO EL PRESUPUESTO DEL PROYECTO O PRIMER TESOERIA, IRIA A ACTIVOS DE EFECTIVO Y TAMBIÉN EN CAPITAL CONTABLE
-        #POR CADA ITERACIÓN ES DECIR ADQUISICION SE IRÁ CALCULANDO EL BALANCE CON TESORERIA, LA ADQUISICIÓN Y EL PASIVO SI FUE FINANCIADA
-        #GUARDAR EL DESGLOSE DE CADA ITERACIÓN EN ALGO PARA PODER DESGLOSAR POR FECHA U ADQUISICIÓN EL BALANCE EN EL PDF
-    
-    #HACER EL INSERTE EN LA TABLA DE BALANCE CON EL RESULTADO FINAL
-
-    #HACER EL RETURN DEL ENDPOINT
-     
-    #REGRESAR ERRORES SI HAY
-
-    try:
+    try: #Se hace todo dentro de un try-catch a reserva de los posibles errores que se pueden generar con la base de datos
         #validación para ver si la empresa y el proyecto existen
-        proyecto_val = select(proyecto).where(proyecto.proyecto_id == proyecto_id and proyecto.empresa_id == empresa_id)
-        c=5
-    except Exception as ve: #errores de validación
+        emp_id = Decimal(empresa_id)
+        proy_id =  Decimal(proyecto_id)
+        proyecto_val_query = db.select(proyecto).where(proyecto.empresa_id == emp_id).where(proyecto.proyecto_id == proy_id) #Crea la consulta SQL
+        proyecto_existente = db.session.execute(proyecto_val_query).scalar_one_or_none() #Ejecuta la consulta SQL en la sesi´on que abrí y trae un registro
+
+        if not proyecto_existente:
+            return {"error": f"No existe el proyecto {proyecto_id}"}, 404
+        
+        #Variables que se usarán parra el cálculo del balance
+        activos_desglosados = {}
+        pasivos_desglosados = {}
+        total_activos_calculado = Decimal('0.00')
+        total_pasivos_calculado = Decimal('0.00')
+        fecha_balance = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+
+        snapshot_tesoreria = tesoreria.query.filter(tesoreria.empresa_id == emp_id, tesoreria.proyecto_id == proy_id, tesoreria.fecha_registro <= fecha_balance #Se usa filter al combinar comparaciones
+                                             ).order_by(
+                                                tesoreria.fecha_registro.desc(),
+                                                tesoreria.tesoreria_id.desc()
+                                             ).first()
+        
+        if not snapshot_tesoreria:
+            return {"error": f"No puede calcularrse el balance para el momento solicitado {proyecto_id}"}, 404
+        else:
+            efectivo = Decimal(snapshot_tesoreria.monto_disponible)
+        
+        total_activos_calculado += efectivo
+        activos_desglosados[TIPO_BIEN_EFECTIVO_EQUIVALENTES] = efectivo
+
+        #Aquí se harán consultas por tipo de bien para poder tener el desglose en el diccionario y PDF
+        #Es una consulta compleja
+        #********************REVISAR SI USARR MONTO TOTAL O QUE NO ESTOY SEGURO AL CONTAR EL EFECTIVO DE TESORERIA ****************
+        activosDB = db.session.query(bien.tipo_bien, func.sum(adquisicion.monto_total).label('total_por_tipo') #SELECT Y SUMA DE SQL CUANDO SE AGRUPE
+                                      ).join( #JOIN DE ADQUISICION Y BIENES
+                                          bien, adquisicion.bien_id == bien.bien_id
+                                      ).filter( #TRAE SOLO LOS RREGISTROS DEL PROYYECTO, EMPRRESA ANTES DE LA FECHA DEL BALANCE
+                                          adquisicion.empresa_id == emp_id,
+                                          adquisicion.proyecto_id == proyecto_id,
+                                          adquisicion.fecha_adquisicion <= fecha_balance,
+                                          bien.tipo_bien.in_(TIPOS_BIEN_ACTIVOS) #VER SI ESTA LINEA ESTA CORRECTA, QUITARRE GASTOS DE LA ESTRUCTURA, DEPENDE COMO SALGA EL BALANCE
+                                      ).group_by( #AGRUPA Y EJECUTA LA SUMA POR TIPO DE BIEN
+                                          bien.tipo_bien
+                                      ).all() #EJECUTA LA CONSULTA
+        
+        for tipo, total in activosDB:
+            monto_total_tipo = Decimal(total) if total is not None else Decimal('0.00') #Se valida que el total no sea , si lo es aún así lo formatea para cuadrar la suma
+            activos_desglosados[tipo] = activos_desglosados.get(tipo, Decimal('0.00')) + monto_total_tipo #asignación robusta, por si hubiera algún errro con group byy en la consulta y repitierra tipo
+            total_activos_calculado += monto_total_tipo
+
+        #Consulta compleja y desglose para los pasivos
+        pasivosDB = db.session.query(financiamiento.fuente, func.sum(financiamiento.monto_financiado).label('total por tipo')#SIMILAR A ACTIVOS, TRAIGO LA FUENTE COMO TIPO PARA EL DESGLOSE Y SUMMARE AL AGRUPAR
+                                     ).join(#JOIN DE ADQUISICIÓN Y FINANCIAMMIENTO
+                                        adquisicion, financiamiento.adquisicion_id == adquisicion.adquisicion_id #INNER JOIN
+                                     ).filter( #TRAE SOLO LOS RREGISTROS DEL PROYYECTO, EMPRRESA ANTES DE LA FECHA DEL BALANCE
+                                        adquisicion.empresa_id == emp_id,
+                                        adquisicion.proyecto_id == proyecto_id,
+                                        adquisicion.fecha_adquisicion <= fecha_balance
+                                     ).group_by( #AGRUPA Y EJECUTA SEGÚN LA FUENTE DE FINANCIAMIENTO
+                                        financiamiento.fuente
+                                     ).all()#EJECUTA LA CONSULTA
+        
+        for tipo, total in pasivosDB:
+            monto_total_tipo = Decimal(total) if total is not None else Decimal('0.00') #Se valida que el total no sea , si lo es aún así lo formatea para cuadrar la suma
+            pasivos_desglosados[tipo] = pasivos_desglosados.get(tipo, Decimal('0.00')) + monto_total_tipo #asignación robusta, por si hubiera algún errro con group byy en la consulta y repitierra tipo
+            total_pasivos_calculado += monto_total_tipo
+
+        capital_contable_calculado = total_activos_calculado - total_pasivos_calculado
+
+        balance = balanceFinanciero.query.filter(balanceFinanciero.empresa_id == emp_id,
+                                                    balanceFinanciero.proyecto_id == proy_id,
+                                                    balanceFinanciero.fecha_generado == fecha_balance
+                                                    ).first() #CONSULTA PARA VER SI EL BALANCE YA SE CALCULO
+        
+        nombre_balance = f"Balance General al {fecha_balance.isoformat()}"
+        
+        if balance:
+            balance.nombre = nombre_balance
+            balance.total_activos = total_activos_calculado
+            balance.total_pasivos = total_pasivos_calculado
+            balance.capital_contable = capital_contable_calculado
+            balance.observaciones = "El balance fue actualizao"
+        else:
+            nuevo_balance = balanceFinanciero(
+                nombre = nombre_balance,
+                fecha_generado = fecha_balance,
+                total_activos = total_activos_calculado,
+                total_pasivos = total_pasivos_calculado,
+                capital_contable = capital_contable_calculado,
+                proyecto_id = proy_id,
+                empresa_id = emp_id
+            )
+            db.session.add(nuevo_balance)
+        
+        db.session.commit()
+
+        # Convertir los diccionarios de desglose a una lista de objetos, que es más fácil de usar en el frontend
+        activos_lista_para_json = [{"categoria": key, "monto": str(value)} for key, value in activos_desglosados.items()]
+        pasivos_lista_para_json = [{"categoria": key, "monto": str(value)} for key, value in pasivos_desglosados.items()]
+
+        # Diccionario final de respuesta
+        respuesta_balance = {
+            "mensaje": "Balance General calculado exitosamente.",
+            "empresa_id": str(empresa_id),
+            "proyecto_id": str(proyecto_id),
+            "fecha_balance": fecha_balance.isoformat(),
+            "totales": {
+                "total_activos": str(total_activos_calculado),
+                "total_pasivos": str(total_pasivos_calculado),
+                "capital_contable": str(capital_contable_calculado)
+            },
+            "desglose": {
+                "activos": activos_lista_para_json,
+                "pasivos": pasivos_lista_para_json
+            }
+        }
+
+        return respuesta_balance, 200
+    except ValueError as ve: #errores de validación en los datos del JSON
+        db.session.rollback()
         return {"error": str(ve)}, 400
-    except Exception as e: #error en la base de datos
-        return {"error": f"Error interno al agregar la adquisición: {str(e)}"}, 500
+    except Exception as e: #error en la base de datos u otros
+        db.session.rollback()
+        return {"error": f"Error inesperado durante el cálculo del balance {str(e)}"}, 500
 
 def get_balance_actual():
     return
