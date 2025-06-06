@@ -8,6 +8,7 @@ import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutline
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import { gray, brand } from '../themePrimitive';
+import { textFieldClasses } from '@mui/material';
 
 /* eslint-disable import/prefer-default-export */
 export const inputsCustomizations = {
@@ -433,6 +434,26 @@ export const inputsCustomizations = {
       }),
     },
   },
+  MuiTextField: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        [`& .${textFieldClasses.root}`]: {
+          backgroundColor: (theme.vars || theme).palette.background.default,
+          borderRadius: (theme.vars || theme).shape.borderRadius,
+          '&:hover': {
+            backgroundColor: gray[100],
+          },
+          ...theme.applyStyles('dark', {
+            backgroundColor: gray[800],
+            '&:hover': {
+              backgroundColor: gray[900],
+            },
+          }),
+        },
+      }),
+    },
+  },
+  
   MuiFormLabel: {
     styleOverrides: {
       root: ({ theme }) => ({
