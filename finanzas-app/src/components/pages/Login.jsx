@@ -17,9 +17,7 @@ import AppTheme from '../../theme/AppTheme';
 import ColorModeSelect from '../../theme/ColorModeSelect';
 import WebhookIcon from '@mui/icons-material/Webhook';
 import ForgotPassword from '../layout/ForgotPassword';
-import GoogleIcon from '@mui/icons-material/Google';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import { useNavigate } from 'react-router-dom'; // 1. IMPORTANTE: Añade useNavigate para la redirección
+import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -70,7 +68,6 @@ export default function Login(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
   
-  // 2. IMPORTANTE: Inicializa la función de navegación
   const navigate = useNavigate();
 
   const handleClickOpen = () => {
@@ -81,17 +78,13 @@ export default function Login(props) {
     setOpen(false);
   };
   
-  // 3. --- FUNCIÓN handleSubmit CORREGIDA ---
   const handleSubmit = (event) => {
-    // Previene que la página se recargue, como ya lo hacías
     event.preventDefault();
     
-    // Obtener los datos del formulario. Esto está bien para leer los valores.
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email');
     const password = formData.get('password');
 
-    // Aquí podrías poner tu lógica de validación como la tenías
     let isValid = true;
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true);
@@ -101,7 +94,7 @@ export default function Login(props) {
       setEmailError(false);
       setEmailErrorMessage('');
     }
-    if (!password) { // Añadí una validación simple de contraseña
+    if (!password) { 
       setPasswordError(true);
       setPasswordErrorMessage('La contraseña no puede estar vacía.');
       isValid = false;
@@ -111,50 +104,40 @@ export default function Login(props) {
     }
     if (!isValid) return;
 
-    // Crear el objeto payload que espera tu backend.
-    // La clave 'correo' debe coincidir con data.get('correo') en tu endpoint de Flask.
     const payload = {
       correo: email,
       password: password,
     };
 
-    // Hacer la llamada a la API usando fetch
-    fetch('http://127.0.0.1:5000/auth/login', { // Asegúrate que esta URL y puerto sean correctos
+    fetch('http://127.0.0.1:5000/auth/login', { 
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json', // <-- El header crucial que resuelve el error 415
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload), // <-- Convierte tu objeto a una cadena JSON
+      body: JSON.stringify(payload), 
     })
     .then(response => {
-      // Si la respuesta no es 2xx, la procesamos como un error
+
       if (!response.ok) {
         return response.json().then(err => { throw new Error(err.msg || 'Error en el login'); });
       }
-      return response.json(); // Si es 2xx, procesamos el JSON de éxito
+      return response.json();
     })
     .then(data => {
-      // Éxito: tienes el token de acceso
       console.log('Login exitoso:', data);
       
       // Guardar el token para usarlo en futuras peticiones
       localStorage.setItem('access_token', data.access_token);
       
-      // Redirigir al usuario al dashboard o página principal
-      navigate('/Form'); // Asegúrate de tener una ruta '/dashboard' definida
+      navigate('/Form'); //Cambiar para redirigir a la pagina principal
     })
     .catch(error => {
-      // Manejar errores de red o errores de la API (ej. 401 Credenciales incorrectas)
       console.error('Error:', error.message);
-      // Aquí podrías mostrar un mensaje de error al usuario
       setPasswordError(true);
       setEmailError(true);
-      setEmailErrorMessage(error.message); // Muestra el mensaje de error del backend
+      setEmailErrorMessage(error.message); 
     });
   };
-
-  // La validación ahora puede ser parte de handleSubmit o llamarse desde ahí.
-  // He movido la lógica de validación dentro de handleSubmit para simplificar.
 
   return (
     <AppTheme {...props}>
@@ -188,7 +171,7 @@ export default function Login(props) {
                 helperText={emailErrorMessage}
                 id="email"
                 type="email"
-                name="email" // 'name' es importante para que FormData lo pueda leer
+                name="email" 
                 placeholder="your@email.com"
                 autoComplete="email"
                 autoFocus
@@ -203,7 +186,7 @@ export default function Login(props) {
               <TextField
                 error={passwordError}
                 helperText={passwordErrorMessage}
-                name="password" // 'name' es importante
+                name="password" 
                 placeholder="••••••"
                 type="password"
                 id="password"
@@ -241,7 +224,7 @@ export default function Login(props) {
             <Typography sx={{ textAlign: 'center' }}>
               Don&apos;t have an account?{' '}
               <Link
-                href="/signup" // Asegúrate de tener una ruta de registro
+                href="/SignUp" //Se puso la ruta
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
