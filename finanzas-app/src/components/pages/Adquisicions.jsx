@@ -55,7 +55,7 @@ export default function AdquisicionForm() {
   const [snackbarErrorOpen, setSnackbarErrorOpen] = useState(false);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/empresas')
+    fetch('http://127.0.0.1:5000/reportes/empresas')
       .then((res) => res.json())
       .then((data) => setEmpresas(data))
       .catch(() => setEmpresas([]));
