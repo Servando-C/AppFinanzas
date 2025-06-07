@@ -3,6 +3,7 @@ from sqlalchemy import func
 from .database import db
 from decimal import Decimal #Ya que se maneja dinero
 from datetime import datetime, date
+from flask import jsonify
 
 # --- Constantes para Clasificación de Bienes (Tipos de Cuenta para Activos) ---
 # Estos son los valores que esperarías en la columna bien.tipo_bien
@@ -85,9 +86,15 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
         except:
             return {"error": "Capital inicial asignado debe ser un número."}, 400
         
+        proyecto_existente = proyecto.query.filter_by(
+            empresa_id=empresa_id_param, 
+            nombre=nombre_proyecto
+        ).first()
+        if proyecto_existente:
+            return {"error": f"Ya existe un proyecto con el nombre '{nombre_proyecto}' en esta empresa."}, 409 
+        
         #SE DEBE ANALIZAR QUE ONDA CON LAS DOS PK POR PROYECTO, SE GENERA UNA COMPUESTA O CADA PROYECTO TIENE SU NUMERACIÓN PERO PUEDEN REPETIRSE EN LAS GLOBALES???
         nuevo_proy = proyecto(
-            # proyecto_id=nuevo_proyecto_id_local, # Si lo generamos
             empresa_id=empresa_obj.empresa_id,
             nombre=nombre_proyecto,
             fecha_creacion=fecha_creacion_obj,
@@ -515,8 +522,20 @@ def calcular_balance_general(empresa_id, proyecto_id, fecha_str):
         db.session.rollback()
         return {"error": f"Error inesperado durante el cálculo del balance {str(e)}"}, 500
 
-def get_balance_actual():
-    return
+def send_tesoreria_fechas(empresa_id, proyecto_id):
+    try:
+        fechas_registros = tesoreria.query.filter(
+            tesoreria.empresa_id == empresa_id,
+            tesoreria.proyecto_id == proyecto_id
+        ).with_entities(tesoreria.fecha_registro).all()
+
+        fechas_formateadas = [fecha.fecha_registro.strftime('%Y-%m-%d') for fecha in fechas_registros] #Se debe procesar para poder meterse en el JSON
+
+        return jsonify({"success": True, "fechas": fechas_formateadas}), 200
+
+    except Exception as e:
+        # En caso de cualquier error (ej. problema de base de datos, tipos de datos incorrectos)
+        return jsonify({"success": False, "message": f"Error al obtener fechas de tesorería: {str(e)}"}), 500
 
 def generar_reporte_PDF():
     return

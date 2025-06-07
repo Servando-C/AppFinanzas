@@ -93,22 +93,28 @@ def crear_usuario_capturista(empresa_id, nombre, correo, rfc, password):
         if correo_val or rfc_val:
             return {"error": "Ya hay un usuario registrado con este correo o RFC"}, 412
 
-        nuevo_usuario = usuario(
-            #EL ID DE USUARIO ES AUTOGENERADO POR LA BASE DE DATOS
-            nombre = nombre,
-            correo = correo,
-            rfc = rfc,
-            password = password #LE ENTENDÍA A TELCEL QUE EL ENCRIPTA POR ESO REVISAR SI MANDAR EN CLARO O HASHEED
-        )
-        
-        db.session.add(nuevo_usuario)
-        db.session.flush()
+        sql_insert_usuario = text("""
+            INSERT INTO usuario (nombre, correo, rfc, password) 
+            VALUES (:nombre, :correo, :rfc, crypt(:password, gen_salt('bf')))
+            RETURNING usuario_id;
+        """) #SE REALIZA EL INSERT CON RAW SQL PARA CONSERVAR COMO LO QUIEREN EN LA BASE Y COMO LO RECIBE LA FUNCIÓN DE AUTH
+
+        resultado_insert = db.session.execute(
+            sql_insert_usuario,
+            {'nombre': nombre, 'correo': correo, 'rfc': rfc, 'password': password}
+        ).scalar_one_or_none() # .scalar_one_or_none() obtiene el primer valor de la primera fila
+
+        if not resultado_insert:
+            # Si por alguna razón el insert falla y no devuelve un ID se lanza un error
+            raise Exception("No se pudo crear el usuario en la base de datos.")
+
+        user_id_generado = resultado_insert
 
         #Lo útlimo que se hace es asignar el rol, primero se debe obtener el id que se le dio al usuario en la db para ponerlo en su rol
 
         nuevo_rol = rolesEmpresa(
             empresa_id = emp_id,
-            usuario_id = nuevo_usuario.usuario_id, #ESTOS IDS LOS ASIGNO YO, NO TELCEL
+            usuario_id = user_id_generado, #ESTOS IDS LOS ASIGNO YO, NO TELCEL. LOS ASIGNO CON LOS AUTOMÁTICOS DE USUARIO Y SE FORMA LA PK COMPUESTA
             rol_capturista = True,
             rol_admin = False,
             rol_mvp = False,
@@ -121,9 +127,9 @@ def crear_usuario_capturista(empresa_id, nombre, correo, rfc, password):
         return {
             "mensaje": "Usuario capturista creado y rol asignado exitosamente.",
             "usuario": {
-                "usuario_id": float(nuevo_usuario.usuario_id),
-                "nombre": nuevo_usuario.nombre,
-                "correo": nuevo_usuario.correo,
+                "usuario_id": float(user_id_generado),
+                "nombre": nombre,
+                "correo": correo,
                 "rol_asignado": "capturista"
             }
         }, 201
