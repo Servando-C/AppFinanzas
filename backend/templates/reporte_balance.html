@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Balance General - {{ empresa.nombre }}</title>
+    <style>
+        /* Estilos generales del documento */
+        @page {
+            size: A4;
+            margin: 1.5cm; /* Márgenes de la página */
+            
+            /* Cabecera y Pie de Página */
+            @top-center {
+                content: "Reporte Confidencial - {{ empresa.nombre }}";
+                font-family: Arial, sans-serif;
+                font-size: 9pt;
+                color: #888;
+            }
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: Arial, sans-serif;
+                font-size: 9pt;
+                color: #888;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        /* Cabecera del reporte */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #005a9c;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #005a9c;
+        }
+        .header p {
+            margin: 5px 0 0;
+            font-size: 12pt;
+            color: #555;
+        }
+
+        /* Tablas de contenido */
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        .content-table th {
+            font-size: 13pt;
+            background-color: #005a9c;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .content-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .content-table tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+        .align-right {
+            text-align: right;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 12pt;
+            background-color: #eaf2f8 !important;
+            border-top: 2px solid #005a9c;
+        }
+
+        /* Sección de verificación */
+        .verification {
+            margin-top: 40px;
+            padding: 15px;
+            background-color: #f2f2f2;
+            border-left: 5px solid #005a9c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Balance General</h1>
+        <p><strong>Empresa:</strong> {{ empresa.nombre }}</p>
+        <p><strong>Proyecto:</strong> {{ proyecto.nombre }}</p>
+        <p><strong>Al:</strong> {{ datos.fecha_balance }}</p>
+    </div>
+
+    <table class="content-table">
+        <thead>
+            <tr><th colspan="2">Activos</th></tr>
+        </thead>
+        <tbody>
+            {% for item in datos.desglose.activos %}
+            <tr>
+                <td>{{ item.categoria }}</td>
+                <td class="align-right">$ {{ item.monto }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td>Total Activos</td>
+                <td class="align-right">$ {{ datos.totales.total_activos }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="content-table">
+        <thead>
+            <tr><th colspan="2">Pasivos</th></tr>
+        </thead>
+        <tbody>
+            {% for item in datos.desglose.pasivos %}
+            <tr>
+                <td>{{ item.categoria }}</td>
+                <td class="align-right">$ {{ item.monto }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td>Total Pasivos</td>
+                <td class="align-right">$ {{ datos.totales.total_pasivos }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table class="content-table">
+        <thead>
+            <tr><th colspan="2">Patrimonio</th></tr>
+        </thead>
+        <tbody>
+            <tr class="total-row">
+                <td>Capital Contable</td>
+                <td class="align-right">$ {{ datos.totales.capital_contable }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="verification">
+        <strong>Verificación Ecuación Contable:</strong> Activos (<strong>$ {{ datos.totales.total_activos }}</strong>) = 
+        Pasivos (<strong>$ {{ datos.totales.total_pasivos }}</strong>) + 
+        Patrimonio (<strong>$ {{ datos.totales.capital_contable }}</strong>)
+    </div>
+
+</body>
+</html>

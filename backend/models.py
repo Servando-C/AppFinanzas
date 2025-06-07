@@ -40,10 +40,10 @@ class rolesEmpresa(db.Model):
     usuario_id = db.Column(db.Numeric(10, 0), db.ForeignKey('usuario.usuario_id'), primary_key=True)
 
     # Atributos de la tabla
-    rol_capturista = db.Column(db.Boolean, nullable=False, default=False)
-    rol_admin = db.Column(db.Boolean, nullable=False, default=False)
-    rol_jefe = db.Column(db.Boolean, nullable=False, default=False) 
-    rol_financiero = db.Column(db.Boolean, nullable=False, default=False) 
+    rol_capturista = db.Column(db.Numeric(1, 0), nullable=False, default=1)
+    rol_admin = db.Column(db.Numeric(1, 0), nullable=False, default=0)
+    rol_mvp = db.Column(db.Numeric(1, 0), nullable=False, default=0)
+    rol_financiero = db.Column(db.Numeric(1, 0), nullable=False, default=0)
 
     # Relaciones con otros objetos
     empresa = db.relationship('empresa', backref=db.backref('roles_asignados', lazy='dynamic')) #VERIFICAR SI SE DEBE USAR DYNAMIC
@@ -84,7 +84,7 @@ class proyecto(db.Model):
 
     #Clave primaria compuesta
     proyecto_id = db.Column(db.Numeric(10, 0), primary_key=True)
-    empresa_id = db.Column(db.Numeric(10, 0), db.ForeignKey('empresa.empresa_id'), primary_key=True)
+    empresa_id = db.Column(db.Numeric(10, 0), db.ForeignKey('empresa.empresa_id'), nullable=False)
 
     #Atributos de la tabla
     nombre = db.Column(db.String(40), nullable=False)
@@ -275,7 +275,7 @@ class tesoreria(db.Model):
     monto_entradas = db.Column(db.Numeric(17, 2), nullable=True)
     monto_salidas = db.Column(db.Numeric(17, 2), nullable=True)
     fecha_registro = db.Column(db.Date, nullable=False)
-    
+        
     #Atributos de la tabla que son foreignKeys desde otras tablas 
     proyecto_id = db.Column(db.Numeric(10, 0), db.ForeignKey('proyecto.proyecto_id'), nullable=False)
     empresa_id = db.Column(db.Numeric(10, 0), db.ForeignKey('empresa.empresa_id'), nullable=False)
