@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify, Response
 from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa, generar_balance_pdf
 from flask import Response
 
-reportes_bp = Blueprint('reportes_bp', __name__, url_prefix='/reportes') 
+reportes_bp = Blueprint('reportes_bp', __name__, url_prefix='/api/reportes') 
 
 @reportes_bp.route('/crear/empresa', methods=['POST'])
 def crear_nueva_empresa_endpoint():
@@ -167,7 +167,6 @@ def get_proyectos_de_empresa_endpoint(empresa_id):
     resultado, status_code = obtener_proyectos_por_empresa(empresa_id)
     
     return jsonify(resultado), status_code
-
 
 @reportes_bp.route('/balance-general/pdf', methods=['GET'])
 def descargar_balance_pdf_endpoint():

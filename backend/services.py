@@ -677,20 +677,21 @@ def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
         
         # Sección de Patrimonio
         pdf.set_font('DejaVu', 'B', 14)
-        pdf.cell(0, 10, 'Capital Contable', ln=True)
+        pdf.cell(0, 10, 'Patrimonio', ln=True)
         pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(130, 8, 'Capital Contable', border='T')
         pdf.cell(50, 8, f"$ {totales_data.get('capital_contable', '0.00')}", border='T', ln=True, align='R')
 
         # Generar los bytes del PDF
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
+        output_bytearray = pdf.output(dest='S')
+        pdf_bytes = bytes(output_bytearray)
         
         # --- PASO DE DEPURACIÓN 3: Verificar el tamaño del PDF generado ---
         print(f"--- PDF generado, tamaño en bytes: {len(pdf_bytes)} ---")
         if len(pdf_bytes) < 400: # Un PDF real, incluso simple, suele ser más grande
             print("ADVERTENCIA: El tamaño del PDF generado es muy pequeño, podría estar vacío.")
 
-        nombre_archivo = f"Balance_General_{empresa_obj.nombre.replace(' ', '_') if empresa_obj else 'Reporte'}_{fecha_hasta_str}.pdf"
+        nombre_archivo = f"Balance_General_{empresa_obj.nombre.replace(' ', '') if empresa_obj else 'Reporte'}{fecha_hasta_str}.pdf"
 
         return {"pdf_bytes": pdf_bytes, "nombre_archivo": nombre_archivo}, 200
 

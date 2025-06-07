@@ -112,7 +112,7 @@ export default function Reports() {
       alert('Por favor, seleccione una empresa, un proyecto y una fecha.');
       return;
     }
-    const reportUrl = `http://127.0.0.1:5000/reportes/balance-general/pdf?empresa_id=${form.empresa_id}&proyecto_id=${form.proyecto_id}&fecha=${selectedFecha}`;
+    const reportUrl = `http://127.0.0.1:5000/reportes/balance-general/pdf?empresa_id=${form.empresa_id}&proyecto_id=${form.proyecto_id}&fecha_hasta=${selectedFecha}`;
     window.open(reportUrl, '_blank');
   };
 
