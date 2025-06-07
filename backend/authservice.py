@@ -8,46 +8,76 @@ from werkzeug.security import generate_password_hash
 
 def auth_usuario(correo_param, password_plano_param):
     """
-    Verifica las credenciales de un usuario contra la base de datos usando crypt().
+    Verifica las credenciales de un usuario y obtiene su rol único.
 
     Args:
         correo_param (str): El correo del usuario.
-        password_plano_param (str): La contraseña en texto plano que el usuario envió.
+        password_plano_param (str): La contraseña en texto plano.
 
     Returns:
-        Un diccionario con los datos del usuario si la autenticación es exitosa,
-        de lo contrario, devuelve None.
+        Un diccionario con los datos del usuario y su rol si la autenticación
+        es exitosa; de lo contrario, devuelve None.
     """
     try:
-        # 1. Construir una consulta SQL parametrizada y segura.
-        #    Usamos :correo y :password como placeholders (parámetros con nombre).
-        #    La función crypt(password_enviado, password_almacenado) de PostgreSQL
-        #    compara la contraseña enviada con la ya hasheada en la base de datos.
+        # 1. Consulta con JOIN para obtener datos de usuario y rol a la vez.
+        #    - Unimos 'usuario' y 'roles_empresa' por 'usuario_id'.
+        #    - Filtramos por correo y validamos la contraseña con crypt().
         query = text("""
-            SELECT usuario_id, nombre, correo, rfc
-            FROM usuario
-            WHERE correo = :correo AND password = crypt(:password, password)
+            SELECT 
+                usuario.usuario_id, 
+                usuario.nombre, 
+                usuario.correo, 
+                usuario.rfc,
+                roles_empresa.empresa_id,
+                roles_empresa.rol_capturista, 
+                roles_empresa.rol_admin, 
+                roles_empresa.rol_mvp, 
+                roles_empresa.rol_financiero
+            FROM 
+                usuario
+            INNER JOIN 
+                roles_empresa ON usuario.usuario_id = roles_empresa.usuario_id
+            WHERE 
+                usuario.correo = :correo AND usuario.password = crypt(:password, usuario.password)
         """)
-
-        # 2. Ejecutar la consulta pasando los parámetros de forma segura.
-        #    SQLAlchemy se encargará de escapar los valores para prevenir inyección SQL.
-        #    .mappings().first() devuelve la primera fila como un diccionario o None si no hay resultados.
-        resultado_usuario = db.session.execute(
-            query, 
+        
+        # 2. Ejecutamos la consulta. Usamos .first() porque esperamos un solo rol por usuario.
+        resultado_db = db.session.execute(
+            query,
             {'correo': correo_param, 'password': password_plano_param}
         ).mappings().first()
 
-        if resultado_usuario:
-            # Si la consulta devuelve una fila, significa que el correo y la contraseña son correctos.
-            # Devolvemos los datos del usuario.
-            return dict(resultado_usuario)
+        if resultado_db:
+            # 3. Si encontramos un resultado, procesamos los datos.
+            usuario_data = dict(resultado_db)
+            
+            # Determinar el nombre del rol a partir de las columnas booleanas
+            rol_asignado = "desconocido" # Valor por defecto
+            if usuario_data.get('rol_capturista'):
+                rol_asignado = "capturista"
+            elif usuario_data.get('rol_admin'):
+                rol_asignado = "admin"
+            elif usuario_data.get('rol_mvp'):
+                rol_asignado = "mvp"
+            elif usuario_data.get('rol_financiero'):
+                rol_asignado = "financiero"
+            
+            # Preparamos el diccionario final para devolver
+            usuario_final = {
+                "usuario_id": float(usuario_data['usuario_id']),
+                "nombre": usuario_data['nombre'],
+                "correo": usuario_data['correo'],
+                "rfc": usuario_data['rfc'],
+                "empresa_id": float(usuario_data['empresa_id']),
+                "rol": rol_asignado # Añadimos el rol
+            }
+            return usuario_final
         else:
             # Si no hay resultado, las credenciales son incorrectas.
             return None
 
     except Exception as e:
-        print(f"Error en autenticar_usuario: {str(e)}")
-        # En caso de un error de base de datos, devolvemos None.
+        print(f"Error en auth_usuario: {str(e)}")
         return None
     
 def crear_usuario_capturista(empresa_id, nombre, correo, rfc, password):
