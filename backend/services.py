@@ -409,19 +409,25 @@ def calcular_balance_general(empresa_id, proyecto_id, fecha_str):
         total_pasivos_calculado = Decimal('0.00')
         fecha_balance = datetime.strptime(fecha_str, '%Y-%m-%d').date()
 
-        snapshot_tesoreria = tesoreria.query.filter(tesoreria.empresa_id == emp_id, tesoreria.proyecto_id == proy_id, tesoreria.fecha_registro <= fecha_balance #Se usa filter al combinar comparaciones
-                                             ).order_by(
-                                                tesoreria.fecha_registro.desc(),
-                                                tesoreria.tesoreria_id.desc()
-                                             ).first()
+        snapshot_tesoreria = tesoreria.query.filter(
+            tesoreria.empresa_id == empresa_id,
+            tesoreria.proyecto_id == proyecto_id,
+            tesoreria.fecha_registro <= fecha_balance
+        ).order_by(
+            tesoreria.fecha_registro.desc(),
+            tesoreria.tesoreria_id.desc()
+        ).first()
         
-        if not snapshot_tesoreria:
-            return {"error": f"No puede calcularrse el balance para el momento solicitado {proyecto_id}"}, 404
-        else:
+        # --- VERSIÓN CORREGIDA ---
+        # En lugar de devolver un error, asumimos que el efectivo es 0 si no hay registro.
+        efectivo = Decimal('0.00')
+        if snapshot_tesoreria:
             efectivo = Decimal(snapshot_tesoreria.monto_disponible)
         
+        # El resto de la lógica para sumar activos continúa desde aquí...
         total_activos_calculado += efectivo
         activos_desglosados[TIPO_BIEN_EFECTIVO_EQUIVALENTES] = efectivo
+
 
         #Aquí se harán consultas por tipo de bien para poder tener el desglose en el diccionario y PDF
         #Es una consulta compleja
