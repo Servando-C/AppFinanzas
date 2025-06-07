@@ -80,7 +80,6 @@ const handleChange = (e) => {
       ...updatedForm,
       fuente_financiamiento: 'NA',
       porcentaje_financiamiento: '0',
-      monto_financiado: '',
       numero_pagos: '0',
       monto_financiado: '0',
     };
