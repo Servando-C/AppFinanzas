@@ -54,12 +54,13 @@ export default function AdquisicionForm() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarErrorOpen, setSnackbarErrorOpen] = useState(false);
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:5000/reportes/empresas')
-      .then((res) => res.json())
-      .then((data) => setEmpresas(data))
-      .catch(() => setEmpresas([]));
-  }, []);
+
+useEffect(() => {
+  fetch('http://127.0.0.1:5000/reportes/empresas')
+    .then((res) => res.json())
+    .then((data) => setEmpresas(data.empresas)) // <- Aquí cambia a data.empresas
+    .catch(() => setEmpresas([]));
+}, []);
 
   useEffect(() => {
     if (form.empresa_id) {
@@ -216,10 +217,15 @@ const renderTextField = (field) => {
                     label="Empresa"
                 >
                 {empresas.length ? (
-                  empresas.map((e) => <MenuItem key={e.id} value={e.id}>{e.nombre}</MenuItem>)
-                ) : (
-                  <MenuItem disabled>Error en servidor, no se pudieron cargar los datos</MenuItem>
-                )}
+  empresas.map((e) => (
+    <MenuItem key={e.empresa_id} value={e.empresa_id}>
+      {e.nombre}
+    </MenuItem>
+  ))
+) : (
+  <MenuItem disabled>Error en servidor, no se pudieron cargar los datos</MenuItem>
+)}
+
               </Select>
             </FormControl>
           </Grid>
