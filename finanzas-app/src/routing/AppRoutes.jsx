@@ -9,6 +9,8 @@ import SignUp from "../components/pages/SignUp";
 import RegisterCompanies from "../components/pages/RegisterCompanies";
 import Adquisicions from "../components/pages/Adquisicions";
 import Addproyects from "../components/pages/Addproyects";
+import Admin from "../components/pages/Admin";
+
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -22,6 +24,8 @@ export const AppRoutes = () => {
             <Route path="/RegisterCompanies" element={<RegisterCompanies/>} />
             <Route path="/Adquisicions" element={<Adquisicions/>} />
             <Route path="/Addproyects" element={<Addproyects/>} />
+            <Route path="/Admin" element={<Admin/>} />
+
         </Routes>
     );
 }
