@@ -42,7 +42,7 @@ class rolesEmpresa(db.Model):
     # Atributos de la tabla
     rol_capturista = db.Column(db.Boolean, nullable=False, default=False)
     rol_admin = db.Column(db.Boolean, nullable=False, default=False)
-    rol_jefe = db.Column(db.Boolean, nullable=False, default=False) 
+    rol_mvp = db.Column(db.Boolean, nullable=False, default=False) 
     rol_financiero = db.Column(db.Boolean, nullable=False, default=False) 
 
     # Relaciones con otros objetos
