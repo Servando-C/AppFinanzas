@@ -138,7 +138,7 @@ const handleChange = (e) => {
       tiene_financiamiento: form.tiene_financiamiento === 'Sí',
     };
     try {
-      const res = await fetch('http://127.0.0.1:5000/nueva/adquisicion', {
+      const res = await fetch('http://127.0.0.1:5000/reportes/nueva/adquisicion', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -245,13 +245,28 @@ proyectos.map((p) => (
             </FormControl>
           </Grid>
 
+          <Grid item xs={12} md={6}>
+  <FormControl fullWidth sx={{ minWidth: 200 }}>
+    <InputLabel>Forma de Pago</InputLabel>
+    <Select
+      name="forma_pago_char"
+      value={form.forma_pago_char}
+      onChange={handleChange}
+      label="Forma de Pago"
+    >
+      <MenuItem value="E">Efectivo</MenuItem>
+      <MenuItem value="C">Crédito</MenuItem>
+    </Select>
+  </FormControl>
+</Grid>
+
+
             {[
             'nombre_bien',
             'desc_tipo_bien',
             'monto_total',
             'monto_inicial',
             'fecha_adquisicion',
-            'forma_pago_char',
             'meses_pago'
              ].map(renderTextField)}
 
