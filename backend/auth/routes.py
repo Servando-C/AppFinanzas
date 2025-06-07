@@ -7,6 +7,7 @@ from decimal import Decimal
 from werkzeug.security import generate_password_hash
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
+from ..authservice import auth_usuario, crear_usuario_capturista
 
 
 # Definición del Blueprint (si no lo tienes ya)
