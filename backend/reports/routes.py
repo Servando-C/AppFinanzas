@@ -128,10 +128,17 @@ def get_balance_general_endpoint():
     Endpoint para solicitar el cálculo de un Balance General.
     Recibe los parámetros a través de la URL (query string).
     """
+
     #Ejemplo de URL: /reports/balance_general?empresa_id=1&proyecto_id=101&fecha_hasta=2025-12-31
     empresa_id_str = request.args.get('empresa_id')
     proyecto_id_str = request.args.get('proyecto_id')
     fecha_hasta_str = request.args.get('fecha_hasta')
+
+    try:
+        empresa_id = int(empresa_id_str)
+        proyecto_id = int(proyecto_id_str)
+    except ValueError:
+        return jsonify({"error": "Los parámetros 'empresa_id' y 'proyecto_id' deben ser números enteros."}), 400
 
     # Validar que todos los parámetros necesarios fueron enviados.
     if not all([empresa_id_str, proyecto_id_str, fecha_hasta_str]):
@@ -140,9 +147,9 @@ def get_balance_general_endpoint():
         }), 400
     
     resultado, status_code = calcular_balance_general(
-        empresa_id_param=empresa_id_str,
-        proyecto_id_param=proyecto_id_str,
-        fecha_hasta_str=fecha_hasta_str
+        empresa_id=empresa_id,
+        proyecto_id=proyecto_id,
+        fecha_str=fecha_hasta_str
     )
 
     #El resultado ya es un diccionario listo, y el status_code
