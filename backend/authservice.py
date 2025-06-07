@@ -115,10 +115,10 @@ def crear_usuario_capturista(empresa_id, nombre, correo, rfc, password):
         nuevo_rol = rolesEmpresa(
             empresa_id = emp_id,
             usuario_id = user_id_generado, #ESTOS IDS LOS ASIGNO YO, NO TELCEL. LOS ASIGNO CON LOS AUTOMÁTICOS DE USUARIO Y SE FORMA LA PK COMPUESTA
-            rol_capturista = True,
-            rol_admin = False,
-            rol_mvp = False,
-            rol_financiero = False
+            rol_capturista = 1,
+            rol_admin = 0,
+            rol_mvp = 0,
+            rol_financiero = 0
         )
 
         db.session.add(nuevo_rol)

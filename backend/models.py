@@ -40,10 +40,10 @@ class rolesEmpresa(db.Model):
     usuario_id = db.Column(db.Numeric(10, 0), db.ForeignKey('usuario.usuario_id'), primary_key=True)
 
     # Atributos de la tabla
-    rol_capturista = db.Column(db.Boolean, nullable=False, default=False)
-    rol_admin = db.Column(db.Boolean, nullable=False, default=False)
-    rol_mvp = db.Column(db.Boolean, nullable=False, default=False) 
-    rol_financiero = db.Column(db.Boolean, nullable=False, default=False) 
+    rol_capturista = db.Column(db.Numeric(1, 0), nullable=False, default=1)
+    rol_admin = db.Column(db.Numeric(1, 0), nullable=False, default=0)
+    rol_mvp = db.Column(db.Numeric(1, 0), nullable=False, default=0)
+    rol_financiero = db.Column(db.Numeric(1, 0), nullable=False, default=0)
 
     # Relaciones con otros objetos
     empresa = db.relationship('empresa', backref=db.backref('roles_asignados', lazy='dynamic')) #VERIFICAR SI SE DEBE USAR DYNAMIC

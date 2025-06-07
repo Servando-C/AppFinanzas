@@ -58,7 +58,7 @@ export default function AppAppBar() {
             sx={{ width: 'auto', height: 30}}
             color='primary'/>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-              <Button variant="text" color="info" size="small" sx={{ ml: 2 }} href="/about-us">
+              <Button variant="text" color="info" size="small" sx={{ ml: 2 }} href="/">
                 About us
               </Button>
             </Box>
@@ -70,7 +70,7 @@ export default function AppAppBar() {
               alignItems: 'center',
             }}
           >
-            <Button color="primary" variant="text" size="small" href='/'>
+            <Button color="primary" variant="text" size="small" href='/login'>
               Sign in
             </Button>
             <Button color="primary" variant="contained" size="small " href='/signup'>
@@ -105,7 +105,7 @@ export default function AppAppBar() {
                   </IconButton>
                 </Box>
 
-                <MenuItem href='/about-us'>About us</MenuItem>
+                <MenuItem href='/'>About us</MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <MenuItem>
                   <Button color="primary" variant="contained" fullWidth href='/signup'>
@@ -113,7 +113,7 @@ export default function AppAppBar() {
                   </Button>
                 </MenuItem>
                 <MenuItem>
-                  <Button color="primary" variant="outlined" fullWidth href='/'>
+                  <Button color="primary" variant="outlined" fullWidth href='/login'>
                     Sign in
                   </Button>
                 </MenuItem>
