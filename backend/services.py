@@ -3,6 +3,7 @@ from sqlalchemy import func
 from .database import db
 from decimal import Decimal #Ya que se maneja dinero
 from datetime import datetime, date
+from flask import jsonify
 
 # --- Constantes para Clasificación de Bienes (Tipos de Cuenta para Activos) ---
 # Estos son los valores que esperarías en la columna bien.tipo_bien
@@ -85,9 +86,15 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
         except:
             return {"error": "Capital inicial asignado debe ser un número."}, 400
         
+        proyecto_existente = proyecto.query.filter_by(
+            empresa_id=empresa_id_param, 
+            nombre=nombre_proyecto
+        ).first()
+        if proyecto_existente:
+            return {"error": f"Ya existe un proyecto con el nombre '{nombre_proyecto}' en esta empresa."}, 409 
+        
         #SE DEBE ANALIZAR QUE ONDA CON LAS DOS PK POR PROYECTO, SE GENERA UNA COMPUESTA O CADA PROYECTO TIENE SU NUMERACIÓN PERO PUEDEN REPETIRSE EN LAS GLOBALES???
         nuevo_proy = proyecto(
-            # proyecto_id=nuevo_proyecto_id_local, # Si lo generamos
             empresa_id=empresa_obj.empresa_id,
             nombre=nombre_proyecto,
             fecha_creacion=fecha_creacion_obj,
@@ -515,9 +522,79 @@ def calcular_balance_general(empresa_id, proyecto_id, fecha_str):
         db.session.rollback()
         return {"error": f"Error inesperado durante el cálculo del balance {str(e)}"}, 500
 
-def get_balance_actual():
-    return
+def send_tesoreria_fechas(empresa_id, proyecto_id):
+    try:
+        fechas_registros = tesoreria.query.filter(
+            tesoreria.empresa_id == empresa_id,
+            tesoreria.proyecto_id == proyecto_id
+        ).with_entities(tesoreria.fecha_registro).all()
 
+        fechas_formateadas = [fecha.fecha_registro.strftime('%Y-%m-%d') for fecha in fechas_registros] #Se debe procesar para poder meterse en el JSON
+
+        return jsonify({"success": True, "fechas": fechas_formateadas}), 200
+
+    except Exception as e:
+        # En caso de cualquier error (ej. problema de base de datos, tipos de datos incorrectos)
+        return jsonify({"success": False, "message": f"Error al obtener fechas de tesorería: {str(e)}"}), 500
+
+# En tu archivo de servicios (ej. services.py)
+from .models import empresa
+from flask import jsonify
+from decimal import Decimal
+
+def send_empresas():
+    try:
+        todas_las_empresas = empresa.query.order_by(empresa.nombre).all() #TRAE TODAS LAS EMPRESAS DE LA TABLA
+
+        empresas_lista = []
+
+        for emp in todas_las_empresas:
+            empresa_data = {
+                "empresa_id": float(emp.empresa_id),
+                "nombre": emp.nombre
+            }
+            empresas_lista.append(empresa_data)
+
+        return {
+            "mensaje": "Empresas obtenidas exitosamente",
+            "empresas": empresas_lista
+        }, 200
+
+    except Exception as e:
+        print(f"Error en send_empresas: {str(e)}")
+        return {"error": f"Error interno al obtener las empresas: {str(e)}"}, 500
+
+def obtener_proyectos_por_empresa(empresa_id_param):
+    try:
+        empresa_id = Decimal(empresa_id_param)
+        
+        empresa_obj = empresa.query.get(empresa_id)
+        if not empresa_obj:
+            return {"error": f"La empresa con id {empresa_id} no fue encontrada."}, 404
+
+        proyectos_de_la_empresa = proyecto.query.filter_by(empresa_id=empresa_id).order_by(proyecto.nombre).all() #TRAE TODOS LOS PROYECTOS DE UNA EMPRESA
+
+        #Preparar la lista de resultados para la respuesta JSON.
+        proyectos_lista = []
+        for proy in proyectos_de_la_empresa:
+            proyecto_data = {
+                "empresa_id": float(proy.empresa_id),
+                "nombre": proy.nombre,
+            }
+            proyectos_lista.append(proyecto_data)
+        
+        return {
+            "mensaje": f"Proyectos de la empresa '{empresa_obj.nombre}' obtenidos exitosamente.",
+            "proyectos": proyectos_lista
+        }, 200
+
+    except ValueError:
+        return {"error": "El ID de la empresa debe ser un número válido."}, 400
+    except Exception as e:
+        print(f"Error en obtener_proyectos_por_empresa: {str(e)}")
+        return {"error": f"Error interno al obtener los proyectos: {str(e)}"}, 500
+
+    
 def generar_reporte_PDF():
     return
 
