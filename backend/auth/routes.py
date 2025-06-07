@@ -14,25 +14,33 @@ def login_endpoint():
     correo = data.get("correo")
     password = data.get("password")
 
-    # Llamar a la función de servicio para hacer la autenticación
+    # Llamar a la función de servicio que devuelve el rol
     usuario_autenticado = auth_usuario(correo, password)
 
     if usuario_autenticado:
-        # Si el servicio devolvió los datos del usuario, la autenticación fue exitosa.
-        # Creamos el token de acceso. La 'identity' puede ser cualquier identificador único.
-        # Usar el usuario_id es una buena práctica.
-        additional_claims = {"rol": usuario_autenticado.get("rol", "desconocido")} #Se obtiene el rol del usuario
+        # Autenticación exitosa.
+        
+        # Añadimos el rol y la empresa a los 'claims' del token JWT.
+        # Esto es muy útil para proteger otras rutas basadas en el rol.
+        additional_claims = {
+            "rol": usuario_autenticado.get("rol", "desconocido"),
+            "empresa_id": usuario_autenticado.get("empresa_id")
+        }
+
         access_token = create_access_token(
             identity=usuario_autenticado['usuario_id'],
             additional_claims=additional_claims
         )
+        
+        # Devolvemos el token y los datos del usuario (incluyendo su rol)
+        # al frontend.
         return jsonify(
             access_token=access_token, 
             usuario=usuario_autenticado
-        ), 20
+        ), 200
     else:
-        # Si el servicio devolvió None, las credenciales son incorrectas.
-        return jsonify({"msg": "Correo o contraseña incorrectos"}),401
+        # Credenciales incorrectas. Se devuelve 401 Unauthorized.
+        return jsonify({"msg": "Correo o contraseña incorrectos"}), 401
 
 @auth_bp.route('/signup', methods=['POST'])
 def create_user_endpoint():

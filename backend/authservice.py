@@ -19,9 +19,9 @@ def auth_usuario(correo_param, password_plano_param):
         es exitosa; de lo contrario, devuelve None.
     """
     try:
-        # 1. Consulta con JOIN para obtener datos de usuario y rol a la vez.
-        #    - Unimos 'usuario' y 'roles_empresa' por 'usuario_id'.
-        #    - Filtramos por correo y validamos la contraseña con crypt().
+        # 1. Consulta SQL cruda con JOIN para obtener datos de usuario y rol a la vez.
+        #    - Se usa LEFT JOIN para ser más robusto: devolverá al usuario incluso si por error no tuviera un rol asignado.
+        #    - Se usan los nombres de tabla completos como solicitaste.
         query = text("""
             SELECT 
                 usuario.usuario_id, 
@@ -35,7 +35,7 @@ def auth_usuario(correo_param, password_plano_param):
                 roles_empresa.rol_financiero
             FROM 
                 usuario
-            INNER JOIN 
+            LEFT JOIN 
                 roles_empresa ON usuario.usuario_id = roles_empresa.usuario_id
             WHERE 
                 usuario.correo = :correo AND usuario.password = crypt(:password, usuario.password)
@@ -52,7 +52,7 @@ def auth_usuario(correo_param, password_plano_param):
             usuario_data = dict(resultado_db)
             
             # Determinar el nombre del rol a partir de las columnas booleanas
-            rol_asignado = "desconocido" # Valor por defecto
+            rol_asignado = "desconocido" # Valor por defecto si no tiene rol o ninguno es True
             if usuario_data.get('rol_capturista'):
                 rol_asignado = "capturista"
             elif usuario_data.get('rol_admin'):
@@ -68,8 +68,8 @@ def auth_usuario(correo_param, password_plano_param):
                 "nombre": usuario_data['nombre'],
                 "correo": usuario_data['correo'],
                 "rfc": usuario_data['rfc'],
-                "empresa_id": float(usuario_data['empresa_id']),
-                "rol": rol_asignado # Añadimos el rol
+                "empresa_id": float(usuario_data['empresa_id']) if usuario_data['empresa_id'] else None,
+                "rol": rol_asignado
             }
             return usuario_final
         else:
