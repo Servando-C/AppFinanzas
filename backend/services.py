@@ -111,7 +111,6 @@ def nuevo_proyecto(empresa_id_param, nombre_proyecto, fecha_creacion_str, capita
                 monto_entrada_mov=capital_asignado_decimal,
                 monto_salida_mov=Decimal('0.00'),
                 descripcion_mov=f"Capital inicial para proyecto: {nombre_proyecto}",
-                observaciones_mov="Registro automático por creación de proyecto"
             )
 
         db.session.commit()
@@ -137,7 +136,6 @@ def registrar_o_actualizar_tesoreria(
     monto_entrada_mov, # Decimal
     monto_salida_mov,  # Decimal
     descripcion_mov, # Descripción del movimiento actual
-    observaciones_mov=None
 ):
     """
     Actualiza el snapshot de tesorería del día 'fecha_movimiento' si existe,
@@ -195,8 +193,6 @@ def registrar_o_actualizar_tesoreria(
             # Actualizar descripción y observaciones puede ser opcional o concatenar.
             # Por ahora, podemos sobreescribir con la del último movimiento o la más genérica del día.
             snapshot_del_dia_existente.descripcion = f"Movimientos consolidados al {fecha_movimiento.isoformat()}. Último: {descripcion_mov}"
-            if observaciones_mov:
-                 snapshot_del_dia_existente.observaciones = observaciones_mov # O concatenar
             
             print(f"Actualizando tesorería para P:{proyecto_obj.proyecto_id}, F:{fecha_movimiento}")
         else:
@@ -212,7 +208,6 @@ def registrar_o_actualizar_tesoreria(
                 monto_entradas=nuevo_monto_entradas_acum_dia, # Acumulado total hasta este día
                 monto_salidas=nuevo_monto_salidas_acum_dia,   # Acumulado total hasta este día
                 fecha_registro=fecha_movimiento,
-                observaciones=observaciones_mov,
                 proyecto_id=proyecto_obj.proyecto_id,
                 empresa_id=proyecto_obj.empresa_id 
             )
@@ -238,7 +233,7 @@ def get_or_create_bien(nombre_bien, tipo_bien_param, desc_tipo):
          # Podrías añadir más tipos válidos si es necesario
         raise ValueError(f"Tipo de bien '{tipo_bien_param}' esta vacío.")
     
-    if(tipo_bien_param not in TIPOS_BIEN_ACTIVOS):
+    if(tipo_bien_param not in TIPOS_BIEN_ACTIVOS and tipo_bien_param != TIPO_BIEN_GASTO):
         raise ValueError(f"Tipo de bien '{tipo_bien_param}' no reconocido o no válido.")
 
     bien_obj = bien.query.filter_by(nombre=nombre_bien, tipo_bien=tipo_bien_param).first()
@@ -278,18 +273,19 @@ def get_default_status_adquisicion():
 #PEDIR QUE EN LA BASE CAMBIEN AÑOS PAGOS DE ADQUISICION POR MESES(PERIODO)
 #PARECE QUE LA SUMA DEL FINANCIAMIENTO DE TODAS LAS ADQUISICIONES ES EL TOTAL PASIVO, CADA FINANCIAMIENTO, UN PASIVO
 #USARE TIPO_BIEN COMO EL TIPO DE CUENTA PARA PRESENTAR LOS ACTIVOS Y LA FUENTE DE FINANCIAMIENTO PARA PRESENTAR LAS DEUDAS
+# backend/services.py
+
 def agregar_adquisicion(
     empresa_id_param, proyecto_id_param,
     nombre_bien_param, tipo_bien_param, desc_tipo_bien_param,
     monto_total_str, monto_inicial_str, fecha_adquisicion_str,
     forma_pago_char_param,
-    meses_pago_param, numero_pagos_param, # meses_pago es el antiguo anios_pagos
-    tiene_financiamiento=False, #Los siguientes parametros se ponene por default en none, por si no hay financiamiento
+    meses_pago_param, numero_pagos_param,
+    tiene_financiamiento=False,
     fuente_financiamiento_param=None,
     porcentaje_financiamiento_str=None,
     monto_financiado_str=None
 ):
-    """Agrega una nueva adquisición, su posible financiamiento y actualiza dependencias."""
     try:
         # Validar existencia de empresa y proyecto
         proyecto_obj = proyecto.query.filter_by(
@@ -302,77 +298,78 @@ def agregar_adquisicion(
         # Convertir y validar datos numéricos y de fecha
         try:
             monto_total = Decimal(monto_total_str)
-            monto_inicial = Decimal(monto_inicial_str)
+            monto_inicial = Decimal(monto_inicial_str) if monto_inicial_str is not None else Decimal('0.00')
             fecha_adquisicion = datetime.strptime(fecha_adquisicion_str, '%Y-%m-%d').date()
+            num_pagos_int = int(numero_pagos_param) if numero_pagos_param is not None else None
+            meses_pago_int = int(meses_pago_param) if meses_pago_param is not None else None
         except (ValueError, TypeError) as e:
             return {"error": f"Error en formato de monto, fecha o pagos: {e}"}, 400
         
         if monto_inicial > monto_total:
             raise ValueError("El monto inicial no puede ser mayor al monto total.")
         
-        # 1. Obtener/Crear Bien
         bien_obj = get_or_create_bien(nombre_bien_param, tipo_bien_param, desc_tipo_bien_param)
-
-        # 2. Obtener/Crear Forma de Pago
         forma_pago_obj = get_or_create_forma_pago(forma_pago_char_param)
 
-        # 3. Obtener Status Adquisición por defecto
-        #status_adq_obj = get_default_status_adquisicion()
+        # --- LÓGICA CORREGIDA PARA CALCULAR 'periodicidad' ---
+        periodicidad_calculada = None
+        # Solo se intenta la división si ambos valores son números y el divisor no es cero.
+        if meses_pago_int is not None and num_pagos_int is not None and num_pagos_int > 0:
+            periodicidad_calculada = Decimal(meses_pago_int) / Decimal(num_pagos_int)
+        # --------------------------------------------------------
 
-        # 4. Crear Adquisición
-        # Se asume de momento, como para el resto de inserciones que el id es autoincremental
         nueva_adq = adquisicion(
             monto_total=monto_total,
             enganche=monto_inicial,
             fecha_adquisicion=fecha_adquisicion,
-            numero_pagos=numero_pagos_param, # Tu modelo lo tiene como Numeric(2,0)
-            meses_pagos=meses_pago_param, # Usando anios_pagos para meses_pago de momento
-            periodicidad = (meses_pago_param / numero_pagos_param), #VER SI PEDIRLO O DEJARLO ASÍ
+            numero_pagos=num_pagos_int,
+            meses_pagos=meses_pago_int,
+            periodicidad=periodicidad_calculada, # Se usa el valor calculado de forma segura
             proyecto_id=proyecto_obj.proyecto_id,
             empresa_id=proyecto_obj.empresa_id,
             bien_id=bien_obj.bien_id,
             forma_pago_id=forma_pago_obj.forma_pago_id,
         )
         db.session.add(nueva_adq)
-        # se hace flush para obtener el nueva_adq.adquisicion_id si es autoincrementa y existe financiamiento
         db.session.flush() 
 
-        # 5. Crear Financiamiento si aplica
+        # ... (el resto de la lógica de financiamiento y tesorería no cambia) ...
+
         financiamiento_creado = None
         if tiene_financiamiento and monto_financiado_str and fuente_financiamiento_param:
             try:
                 monto_financiado = Decimal(monto_financiado_str)
-                porcentaje_fin = Decimal(porcentaje_financiamiento_str)
+                porcentaje_fin = Decimal(porcentaje_financiamiento_str) if porcentaje_financiamiento_str else None
             except (ValueError, TypeError):
                  db.session.rollback()
                  return {"error": "Monto de financiamiento debe ser un número o el porcentaje es incorrecto."}, 400
 
-            if monto_total == monto_inicial + monto_financiado: #Se valida que todos los montos cuadren para añadir el financiamiento
-                # una vez más, se asume el id autoincremental
-                nuevo_fin = financiamiento(
-                    fuente=fuente_financiamiento_param,
-                    porcentaje=porcentaje_fin,
-                    monto_financiado=monto_financiado,
-                    adquisicion_id=nueva_adq.adquisicion_id # Usar el ID de la adquisición recién creada
-                )
-                db.session.add(nuevo_fin)
-                financiamiento_creado = nuevo_fin
+            if not (monto_total == monto_inicial + monto_financiado):
+                db.session.rollback()
+                return {"error": "El monto total no coincide con la suma del enganche y el monto financiado."}, 400
+            
+            nuevo_fin = financiamiento(
+                fuente=fuente_financiamiento_param,
+                porcentaje=porcentaje_fin,
+                monto_financiado=monto_financiado,
+                adquisicion_id=nueva_adq.adquisicion_id
+            )
+            db.session.add(nuevo_fin)
+            financiamiento_creado = nuevo_fin
 
-           #ASUMO QUE E SERÁ EFECTIVO EN "FORMA_PAGO" PERO LES DEBO PREGUNTAR 
-            if forma_pago_obj.tipo == 'E' and monto_inicial > Decimal('0.00'):
-                registrar_o_actualizar_tesoreria(
-                    proyecto_id_param=nueva_adq.proyecto_id,
-                    empresa_id_param=nueva_adq.empresa_id,
-                    fecha_movimiento=fecha_adquisicion,
-                    monto_entrada_mov=Decimal('0.00'),
-                    monto_salida_mov=monto_inicial, # El pago inicial sale de tesorería
-                    descripcion_mov=f"Pago inicial adquisición: {bien_obj.nombre}",
-                    observaciones_mov=f"Adquisición ID: {nueva_adq.adquisicion_id}"
-                )
+        if forma_pago_obj.tipo == 'E' and monto_inicial > Decimal('0.00'):
+            registrar_o_actualizar_tesoreria(
+                proyecto_id_param=nueva_adq.proyecto_id,
+                empresa_id_param=nueva_adq.empresa_id,
+                fecha_movimiento=fecha_adquisicion,
+                monto_entrada_mov=Decimal('0.00'),
+                monto_salida_mov=monto_inicial,
+                descripcion_mov=f"Pago inicial adquisición: {bien_obj.nombre}"
+            )
 
-        #SE HACE COMMIT AQUÍ PARA TODOS LOS INSERTS DE LAS FUNCIONES USADAS, Y LOS QUE SE REALIZAN EN ESTA MISMA
         db.session.commit()
 
+        # ... (la lógica para construir la respuesta no cambia) ...
         adq_data = {
             "adquisicion_id": float(nueva_adq.adquisicion_id),
             "monto_total": str(nueva_adq.monto_total),
@@ -383,15 +380,14 @@ def agregar_adquisicion(
             adq_data["financiamiento_id"] = float(financiamiento_creado.financiamiento_id)
             adq_data["monto_financiado"] = str(financiamiento_creado.monto_financiado)
 
-        return {"mensaje": "Adquisición agregada y movimiento de tesorería (si aplica) registrado.", "adquisicion": adq_data}, 201
+        return {"mensaje": "Adquisición agregada exitosamente.", "adquisicion": adq_data}, 201
 
-    except ValueError as ve: # Errores de validación 
+    except ValueError as ve: 
         db.session.rollback()
         return {"error": str(ve)}, 400
     except Exception as e:
         db.session.rollback()
         print(f"Error en agregar_adquisicion: {str(e)}")
-        # Considera loggear el traceback completo aquí para depuración: import traceback; traceback.print_exc()
         return {"error": f"Error interno al agregar la adquisición: {str(e)}"}, 500
 
 def calcular_balance_general(empresa_id, proyecto_id, fecha_str):
