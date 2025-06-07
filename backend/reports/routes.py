@@ -1,6 +1,6 @@
 # backend/reports/routes.py
 from flask import Blueprint, request, jsonify
-from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general
+from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa
 
 reportes_bp = Blueprint('reportes_bp', __name__, url_prefix='/reportes') 
 
@@ -128,28 +128,34 @@ def get_balance_general_endpoint():
     Endpoint para solicitar el cálculo de un Balance General.
     Recibe los parámetros a través de la URL (query string).
     """
-    # 1. Obtener parámetros de la URL.
-    #    Ejemplo de URL: /reports/balance_general?empresa_id=1&proyecto_id=101&fecha_hasta=2025-12-31
+    #Ejemplo de URL: /reports/balance_general?empresa_id=1&proyecto_id=101&fecha_hasta=2025-12-31
     empresa_id_str = request.args.get('empresa_id')
     proyecto_id_str = request.args.get('proyecto_id')
     fecha_hasta_str = request.args.get('fecha_hasta')
 
-    # 2. Validar que todos los parámetros necesarios fueron enviados.
+    # Validar que todos los parámetros necesarios fueron enviados.
     if not all([empresa_id_str, proyecto_id_str, fecha_hasta_str]):
         return jsonify({
             "error": "Parámetros insuficientes. Se requieren 'empresa_id', 'proyecto_id' y 'fecha_hasta'."
         }), 400
     
-    # 3. Llamar a la función de servicio.
-    #    La función de servicio se encargará de la lógica de negocio,
-    #    el cálculo y las validaciones más profundas.
     resultado, status_code = calcular_balance_general(
         empresa_id_param=empresa_id_str,
         proyecto_id_param=proyecto_id_str,
         fecha_hasta_str=fecha_hasta_str
     )
 
-    # 4. Devolver la respuesta generada por el servicio.
-    #    El resultado ya es un diccionario listo, y el status_code
-    #    puede ser 200 (OK), 400 (Bad Request), 404 (Not Found), etc.
+    #El resultado ya es un diccionario listo, y el status_code
+    return jsonify(resultado), status_code
+
+@reportes_bp.route('/empresas', methods=['GET'])
+def get_todas_las_empresas_endpoint():
+    resultado, status_code = send_empresas()
+    
+    return jsonify(resultado), status_code
+
+@reportes_bp.route('/empresas/<int:empresa_id>/proyectos', methods=['GET'])
+def get_proyectos_de_empresa_endpoint(empresa_id):
+    resultado, status_code = obtener_proyectos_por_empresa(empresa_id)
+    
     return jsonify(resultado), status_code
