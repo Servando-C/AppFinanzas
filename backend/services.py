@@ -683,7 +683,7 @@ def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
         pdf.cell(50, 8, f"$ {totales_data.get('capital_contable', '0.00')}", border='T', ln=True, align='R')
 
         # Generar los bytes del PDF
-        pdf_bytes = pdf.output()
+        pdf_bytes = pdf.output(dest='S').encode('latin-1')
         
         # --- PASO DE DEPURACIÓN 3: Verificar el tamaño del PDF generado ---
         print(f"--- PDF generado, tamaño en bytes: {len(pdf_bytes)} ---")
