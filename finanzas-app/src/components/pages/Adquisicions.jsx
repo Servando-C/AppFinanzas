@@ -137,6 +137,8 @@ const handleChange = (e) => {
       ...form,
       tiene_financiamiento: form.tiene_financiamiento === 'Sí',
     };
+      console.log('Datos enviados al servidor:', dataToSend);
+
     try {
       const res = await fetch('http://127.0.0.1:5000/reportes/nueva/adquisicion', {
         method: 'POST',
