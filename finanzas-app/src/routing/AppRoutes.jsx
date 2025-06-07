@@ -7,7 +7,7 @@ import Form from "../components/pages/Form";
 import AboutUs from "../components/pages/AboutUs";
 import SignUp from "../components/pages/SignUp";
 import RegisterCompanies from "../components/pages/RegisterCompanies";
-
+import Adquisicions from "../components/pages/Adquisicions";
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -19,6 +19,7 @@ export const AppRoutes = () => {
             <Route path="/" element={<AboutUs />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/RegisterCompanies" element={<RegisterCompanies/>} />
+            <Route path="/Adquisicions" element={<Adquisicions/>} />
         </Routes>
     );
 }
