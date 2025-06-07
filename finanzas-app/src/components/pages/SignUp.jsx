@@ -1,212 +1,165 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import CssBaseline from '@mui/material/CssBaseline';
-import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Link from '@mui/material/Link';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import MuiCard from '@mui/material/Card';
-import { styled } from '@mui/material/styles';
-import AppTheme from '../../theme/AppTheme';
-import ColorModeSelect from '../../theme/ColorModeSelect';
-import SvgIcon from '@mui/icons-material/Webhook';
-import CopoIconLight from '../../assets/logo-ligh.svg?react';
+import React, { useEffect, useState } from 'react';
+import {
+  Container, Typography, TextField, Button, MenuItem,
+  Paper, Box
+} from '@mui/material';
 
-const Card = styled(MuiCard)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  width: '100%',
-  padding: theme.spacing(4),
-  gap: theme.spacing(2),
-  margin: 'auto',
-  boxShadow:
-    'hsla(225, 75.90%, 39.00%, 0.10) 0px 5px 15px 0px, hsla(225, 75.90%, 39.00%, 0.1) 0px 4px 30px 10px',
-  [theme.breakpoints.up('sm')]: {
-    width: '450px',
-  },
-  ...theme.applyStyles('dark', {
-    boxShadow:
-      'hsla(209, 68.60%, 43.70%, 0.1) 0px 5px 15px 0px, hsla(209, 68.60%, 43.70%, 0.1) 0px 4px 30px 10px',
-  }),
-}));
+const SignUp = () => {
+  const [empresas, setEmpresas] = useState([]);
+  const [formData, setFormData] = useState({
+    empresa_id: '',
+    nombre: '',
+    correo: '',
+    rfc: '',
+    password: ''
+  });
 
-const SignUpContainer = styled(Stack)(({ theme }) => ({
-  minHeight: '100%',
-  padding: theme.spacing(2),
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(4),
-  },
-  '&::before': {
-    content: '""',
-    display: 'block',
-    position: 'absolute',
-    zIndex: -1,
-    inset: 0,
-  },
-}));
+  const [errors, setErrors] = useState({});
 
-export default function SignUp(props) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [nameError, setNameError] = React.useState(false);
-  const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+  useEffect(() => {
+  fetch('http://127.0.0.1:5000/reportes/empresas')
+      .then(response => response.json())
+      .then(data => {
+        setEmpresas(data.empresas);
+      })
+      .catch(error => {
+        console.error('Error al obtener empresas:', error);
+      });
+  }, []);
 
-  const validateInputs = () => {
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-    const name = document.getElementById('name');
-
-    let isValid = true;
-
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-      setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
-      isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage('');
+  const validate = () => {
+    const newErrors = {};
+    for (const key in formData) {
+      if (!formData[key]) {
+        newErrors[key] = 'Este campo es obligatorio';
+      }
     }
-
-    if (!password.value || password.value.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
-      isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage('');
-    }
-
-    if (!name.value || name.value.length < 1) {
-      setNameError(true);
-      setNameErrorMessage('Name is required.');
-      isValid = false;
-    } else {
-      setNameError(false);
-      setNameErrorMessage('');
-    }
-
-    return isValid;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (event) => {
-    if (nameError || emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get('name'),
-      lastName: data.get('lastName'),
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    fetch('http://127.0.0.1:5000/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+      .then(res => {
+        if (res.ok) {
+          alert('Usuario creado exitosamente');
+        } else {
+          alert('Error al crear el usuario');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error en la conexión');
+      });
   };
 
   return (
-    <AppTheme {...props}>
-      <CssBaseline enableColorScheme />
-      <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
-      <SignUpContainer direction="column" justifyContent="space-between">
-        <Card>
-          <SvgIcon component={CopoIconLight}
-            inheritViewBox
-            sx={{ width: 'auto', height: 40, alignSelf: 'start' }}
-            color='primary' />
-          <Typography
-            component="h1"
-            variant="h4"
-            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', textAlign: 'left' }}
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+        <Typography variant="h5" gutterBottom>
+          Crear Cuenta de Usuario
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <TextField
+            select
+            fullWidth
+            label="Empresa"
+            name="empresa_id"
+            value={formData.empresa_id || ''}
+            onChange={handleChange}
+            margin="normal"
+            error={!!errors.empresa_id}
+            helperText={errors.empresa_id}
           >
-            Sign up
-          </Typography>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+            {empresas.length === 0 ? (
+              <MenuItem value="" disabled>
+                No se pudieron obtener las empresas
+              </MenuItem>
+            ) : (
+              empresas.map((empresa) => (
+                <MenuItem key={empresa.empresa_id} value={String(empresa.empresa_id)}>
+                  {empresa.nombre}
+                </MenuItem>
+              ))
+            )}
+          </TextField>
+
+          <TextField
+            fullWidth
+            name="nombre"
+            label="Nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            margin="normal"
+            error={!!errors.nombre}
+            helperText={errors.nombre}
+          />
+
+          <TextField
+            fullWidth
+            name="correo"
+            label="Correo Electrónico"
+            type="email"
+            value={formData.correo}
+            onChange={handleChange}
+            margin="normal"
+            error={!!errors.correo}
+            helperText={errors.correo}
+          />
+
+          <TextField
+            fullWidth
+            name="rfc"
+            label="RFC"
+            value={formData.rfc}
+            onChange={handleChange}
+            margin="normal"
+            error={!!errors.rfc}
+            helperText={errors.rfc}
+          />
+
+          <TextField
+            fullWidth
+            name="password"
+            label="Contraseña"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            margin="normal"
+            error={!!errors.password}
+            helperText={errors.password}
+          />
+
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            fullWidth
+            sx={{ mt: 3 }}
           >
-            <FormControl>
-              <FormLabel htmlFor="name" sx={{ textAlign: 'left' }}>Full name</FormLabel>
-              <TextField
-                autoComplete="name"
-                name="name"
-                required
-                fullWidth
-                id="name"
-                placeholder="Jon Snow"
-                error={nameError}
-                helperText={nameErrorMessage}
-                color={nameError ? 'error' : 'primary'}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="email" sx={{ textAlign: 'left' }}>Email</FormLabel>
-              <TextField
-                required
-                fullWidth
-                id="email"
-                placeholder="your@email.com"
-                name="email"
-                autoComplete="email"
-                variant="outlined"
-                error={emailError}
-                helperText={emailErrorMessage}
-                color={passwordError ? 'error' : 'primary'}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="password" sx={{ textAlign: 'left' }}>Password</FormLabel>
-              <TextField
-                required
-                fullWidth
-                name="password"
-                placeholder="••••••"
-                type="password"
-                id="password"
-                autoComplete="new-password"
-                variant="outlined"
-                error={passwordError}
-                helperText={passwordErrorMessage}
-                color={passwordError ? 'error' : 'primary'}
-              />
-            </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="allowExtraEmails" color="primary" />}
-              label="I want to receive updates via email."
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              onClick={validateInputs}
-            >
-              Sign up
-            </Button>
-          </Box>
-          <Divider>
-            <Typography sx={{ color: 'text.secondary' }}>or</Typography>
-          </Divider>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography sx={{ textAlign: 'center' }}>
-              Already have an account?{' '}
-              <Link
-                href="/"
-                variant="body2"
-                sx={{ alignSelf: 'center' }}
-              >
-                Sign in
-              </Link>
-            </Typography>
-          </Box>
-        </Card>
-      </SignUpContainer>
-    </AppTheme>
+            Registrarse
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
   );
-}
+};
+
+export default SignUp;
