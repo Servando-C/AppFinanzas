@@ -599,8 +599,8 @@ def obtener_proyectos_por_empresa(empresa_id_param):
 
 def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
     """
-    Orquesta la creación de un reporte de Balance General en formato PDF usando FPDF2.
-    Esta versión usa el método explícito y recomendado para obtener bytes.
+    Orquesta la creación de un reporte de Balance General en formato PDF,
+    con soporte para caracteres Unicode (UTF-8) y pasos de depuración.
     """
     # 1. Obtener los datos del balance
     datos_balance, status_code = calcular_balance_general(
@@ -610,57 +610,86 @@ def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
     if status_code != 200:
         return datos_balance, status_code
 
+    # --- PASO DE DEPURACIÓN 1: Imprimir los datos recibidos ---
+    print("--- Datos recibidos para generar PDF ---")
+    print(datos_balance)
+    print("--------------------------------------")
+
     try:
         # 2. Construir el PDF
         pdf = FPDF(orientation='P', unit='mm', format='A4')
         pdf.add_page()
 
+        # Añadir y establecer la fuente Unicode
+        try:
+            pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+            pdf.add_font('DejaVu', 'B', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', uni=True)
+            pdf.set_font('DejaVu', '', 12)
+        except RuntimeError as e:
+            print(f"ADVERTENCIA: No se encontró la fuente DejaVu. Error: {e}")
+            pdf.set_font('Arial', '', 12)
+
+        # --- PASO DE DEPURACIÓN 2: Establecer color de texto explícitamente ---
+        pdf.set_text_color(0, 0, 0) # Establecer texto a color negro (RGB)
+
         # --- CABECERA DEL DOCUMENTO ---
-        pdf.set_font('Arial', 'B', 16)
+        pdf.set_font('DejaVu', 'B', 16)
         pdf.cell(0, 10, 'Balance General', ln=True, align='C')
         
         proyecto_obj = proyecto.query.get(proyecto_id_param)
         empresa_obj = empresa.query.get(empresa_id_param)
         
-        pdf.set_font('Arial', '', 12)
+        pdf.set_font('DejaVu', '', 12)
         pdf.cell(0, 8, f"Empresa: {empresa_obj.nombre if empresa_obj else 'N/A'}", ln=True, align='C')
         pdf.cell(0, 8, f"Proyecto: {proyecto_obj.nombre if proyecto_obj else 'N/A'}", ln=True, align='C')
-        pdf.cell(0, 8, f"Al {datos_balance['fecha_balance']}", ln=True, align='C')
+        pdf.cell(0, 8, f"Al {datos_balance.get('fecha_balance', 'N/A')}", ln=True, align='C')
         pdf.ln(10)
 
-        # --- SECCIONES DEL PDF (Activos, Pasivos, Patrimonio) ---
-        # Sección de Activos
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(0, 10, 'Activos', ln=True)
-        pdf.set_font('Arial', '', 11)
-        for item in datos_balance['desglose']['activos']:
-            # Se usa el manejo de unicode de FPDF2 que soporta UTF-8 por defecto
-            pdf.cell(130, 7, f"  {item['categoria']}")
-            pdf.cell(50, 7, f"$ {item['monto']}", ln=True, align='R')
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(130, 8, 'Total Activos', border='T')
-        pdf.cell(50, 8, f"$ {datos_balance['totales']['total_activos']}", border='T', ln=True, align='R')
-        pdf.ln(8)
-        
-        # (Lógica para Pasivos y Patrimonio - la puedes mantener como estaba)
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(0, 10, 'Pasivos', ln=True)
-        pdf.set_font('Arial', '', 11)
-        for item in datos_balance['desglose']['pasivos']:
-            pdf.cell(130, 7, f"  {item['categoria']}")
-            pdf.cell(50, 7, f"$ {item['monto']}", ln=True, align='R')
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(130, 8, 'Total Pasivos', border='T')
-        pdf.cell(50, 8, f"$ {datos_balance['totales']['total_pasivos']}", border='T', ln=True, align='R')
-        pdf.ln(8)
-        
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(0, 10, 'Patrimonio', ln=True)
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(130, 8, 'Capital Contable', border='T')
-        pdf.cell(50, 8, f"$ {datos_balance['totales']['capital_contable']}", border='T', ln=True, align='R')
+        # --- SECCIONES DEL PDF ---
+        # Asegúrate de que las claves 'desglose', 'activos', 'totales', etc., existan en 'datos_balance'
+        desglose_data = datos_balance.get('desglose', {})
+        totales_data = datos_balance.get('totales', {})
 
+        # Sección de Activos
+        pdf.set_font('DejaVu', 'B', 14)
+        pdf.cell(0, 10, 'Activos', ln=True)
+        pdf.set_font('DejaVu', '', 11)
+        # Usamos .get() con una lista vacía como default para evitar errores si la clave no existe
+        for item in desglose_data.get('activos', []):
+            pdf.cell(130, 7, f"  {item.get('categoria', 'N/A')}")
+            pdf.cell(50, 7, f"$ {item.get('monto', '0.00')}", ln=True, align='R')
+        pdf.set_font('DejaVu', 'B', 12)
+        pdf.cell(130, 8, 'Total Activos', border='T')
+        pdf.cell(50, 8, f"$ {totales_data.get('total_activos', '0.00')}", border='T', ln=True, align='R')
+        pdf.ln(8)
+        
+        # Sección de Pasivos
+        pdf.set_font('DejaVu', 'B', 14)
+        pdf.cell(0, 10, 'Pasivos', ln=True)
+        pdf.set_font('DejaVu', '', 11)
+        for item in desglose_data.get('pasivos', []):
+            pdf.cell(130, 7, f"  {item.get('categoria', 'N/A')}")
+            pdf.cell(50, 7, f"$ {item.get('monto', '0.00')}", ln=True, align='R')
+        pdf.set_font('DejaVu', 'B', 12)
+        pdf.cell(130, 8, 'Total Pasivos', border='T')
+        pdf.cell(50, 8, f"$ {totales_data.get('total_pasivos', '0.00')}", border='T', ln=True, align='R')
+        pdf.ln(8)
+        
+        # Sección de Patrimonio
+        pdf.set_font('DejaVu', 'B', 14)
+        pdf.cell(0, 10, 'Patrimonio', ln=True)
+        pdf.set_font('DejaVu', 'B', 12)
+        pdf.cell(130, 8, 'Capital Contable', border='T')
+        pdf.cell(50, 8, f"$ {totales_data.get('capital_contable', '0.00')}", border='T', ln=True, align='R')
+
+        # Generar los bytes del PDF
         pdf_bytes = pdf.output()
+        
+        # --- PASO DE DEPURACIÓN 3: Verificar el tamaño del PDF generado ---
+        print(f"--- PDF generado, tamaño en bytes: {len(pdf_bytes)} ---")
+        if len(pdf_bytes) < 400: # Un PDF real, incluso simple, suele ser más grande
+            print("ADVERTENCIA: El tamaño del PDF generado es muy pequeño, podría estar vacío.")
+
         nombre_archivo = f"Balance_General_{empresa_obj.nombre.replace(' ', '_') if empresa_obj else 'Reporte'}_{fecha_hasta_str}.pdf"
 
         return {"pdf_bytes": pdf_bytes, "nombre_archivo": nombre_archivo}, 200
@@ -670,3 +699,4 @@ def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
         import traceback
         traceback.print_exc()
         return {"error": "Error interno al generar el archivo PDF."}, 500
+
