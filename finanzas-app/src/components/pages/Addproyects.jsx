@@ -133,10 +133,11 @@ const handleSubmit = async () => {
     </MenuItem>
   ) : (
     empresas.map((empresa) => (
-      <MenuItem key={empresa.id} value={String(empresa.id)}>
-        {empresa.nombre}
-      </MenuItem>
-    ))
+  <MenuItem key={empresa.empresa_id} value={String(empresa.empresa_id)}>
+    {empresa.nombre}
+  </MenuItem>
+))
+
   )}
 </TextField>
 
