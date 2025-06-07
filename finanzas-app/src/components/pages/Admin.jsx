@@ -86,7 +86,7 @@ const menuItems = [
     { text: 'Creat Proyects', path: '/Addproyects' },
     { text: 'Creat Companies', path: '/RegisterCompanies' },
     // El botón de reportes está deshabilitado hasta que se cree su ruta
-    { text: 'Ver y Descargar Reportes', path: '/reports', disabled: true },
+    { text: 'Ver y Descargar Reportes', path: '/Reports' },
 ];
 
 export default function Admin() {

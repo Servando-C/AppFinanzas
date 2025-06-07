@@ -40,7 +40,7 @@ function FinancialNewsTicker() {
         sx={{
           display: "inline-block",
           whiteSpace: "nowrap",
-          animation: "ticker 30s linear infinite",
+          animation: "ticker 100s linear infinite",
         }}
       >
         {tickerContent.map((text, idx) => (

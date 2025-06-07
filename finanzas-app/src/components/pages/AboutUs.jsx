@@ -13,7 +13,7 @@ function FinancialNewsTicker() {
     async function fetchNews() {
       try {
         const res = await fetch(
-            "https://newsapi.org/v2/everything?domains=wsj.com&apiKey=8783ccc2db0f4e4eb6f27389ad4b3273"
+          `https://newsapi.org/v2/everything?domains=wsj.com&apiKey=8783ccc2db0f4e4eb6f27389ad4b3273`
         );
         const data = await res.json();
         setHeadlines(data.articles ? data.articles.map((a) => a.title) : []);

@@ -11,6 +11,8 @@ import Adquisicions from "../components/pages/Adquisicions";
 import Addproyects from "../components/pages/Addproyects";
 import Admin from "../components/pages/Admin";
 import Capturador from "../components/pages/Capturador";
+import Reports from "../components/pages/Reports";
+
 
 
 export const AppRoutes = () => {
@@ -28,6 +30,8 @@ export const AppRoutes = () => {
             <Route path="/Addproyects" element={<Addproyects/>} />
             <Route path="/Admin" element={<Admin/>} />
             <Route path="/Capturador" element={<Capturador/>} />
+            <Route path="/Reports" element={<Reports/>} />
+
 
 
         </Routes>
