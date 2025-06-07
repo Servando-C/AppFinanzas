@@ -143,11 +143,11 @@ export default function Capturador() {
         </Typography>
 
 {/* Contenedor de tarjetas con mayor espaciado */}
-<Grid container spacing={4}>
-  {/* Tarjeta 1 */}
+<Grid container spacing={4} alignItems="stretch">
+      {/* Tarjeta 1 */}
   <Grid item xs={12} md={4}>
     <Card sx={{ height: '100%', backgroundColor: '#f5f5f5' }}>
-      <CardContent>
+      <CardContent  sx={{ minHeight: 120 }}>
         <Typography variant="h6" gutterBottom>Dato Feliz: Poder de la Sonrisa</Typography>
         <Typography variant="body2">
           ¡Sonreír puede mejorar tu estado de ánimo y reducir el estrés! Estudios demuestran que una sonrisa sincera libera endorfinas, haciéndote sentir más feliz.
@@ -159,7 +159,7 @@ export default function Capturador() {
   {/* Tarjeta 2 */}
   <Grid item xs={12} md={4}>
     <Card sx={{ height: '100%', backgroundColor: '#e3f2fd' }}>
-      <CardContent>
+      <CardContent  sx={{ minHeight: 120 }}>
         <Typography variant="h6" gutterBottom>Alegría: Pequeños Gestos</Typography>
         <Typography variant="body2">
           Ayudar a otros, incluso con pequeños gestos, activa el centro de recompensa del cerebro, generando una sensación de felicidad y propósito.
@@ -171,7 +171,7 @@ export default function Capturador() {
   {/* Tarjeta 3 */}
   <Grid item xs={12} md={4}>
     <Card sx={{ height: '100%', backgroundColor: '#f0f4c3' }}>
-      <CardContent>
+      <CardContent  sx={{ minHeight: 120 }} >
         <Typography variant="h6" gutterBottom>Optimismo: Sueños Cumplidos</Typography>
         <Typography variant="body2">
           Visualizar tus metas alcanzadas y celebrar cada pequeño avance te acerca a tus sueños y llena tu día de optimismo y energía.
