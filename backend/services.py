@@ -4,6 +4,7 @@ from .database import db
 from decimal import Decimal #Ya que se maneja dinero
 from datetime import datetime, date
 from flask import jsonify
+from fpdf import FPDF # Para generar PDF
 
 # --- Constantes para Clasificación de Bienes (Tipos de Cuenta para Activos) ---
 # Estos son los valores que esperarías en la columna bien.tipo_bien
@@ -596,9 +597,76 @@ def obtener_proyectos_por_empresa(empresa_id_param):
         print(f"Error en obtener_proyectos_por_empresa: {str(e)}")
         return {"error": f"Error interno al obtener los proyectos: {str(e)}"}, 500
 
-    
-def generar_reporte_PDF():
-    return
+def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
+    """
+    Orquesta la creación de un reporte de Balance General en formato PDF usando FPDF2.
+    Esta versión usa el método explícito y recomendado para obtener bytes.
+    """
+    # 1. Obtener los datos del balance
+    datos_balance, status_code = calcular_balance_general(
+        empresa_id_param, proyecto_id_param, fecha_hasta_str
+    )
 
+    if status_code != 200:
+        return datos_balance, status_code
 
+    try:
+        # 2. Construir el PDF
+        pdf = FPDF(orientation='P', unit='mm', format='A4')
+        pdf.add_page()
 
+        # --- CABECERA DEL DOCUMENTO ---
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(0, 10, 'Balance General', ln=True, align='C')
+        
+        proyecto_obj = proyecto.query.get(proyecto_id_param)
+        empresa_obj = empresa.query.get(empresa_id_param)
+        
+        pdf.set_font('Arial', '', 12)
+        pdf.cell(0, 8, f"Empresa: {empresa_obj.nombre if empresa_obj else 'N/A'}", ln=True, align='C')
+        pdf.cell(0, 8, f"Proyecto: {proyecto_obj.nombre if proyecto_obj else 'N/A'}", ln=True, align='C')
+        pdf.cell(0, 8, f"Al {datos_balance['fecha_balance']}", ln=True, align='C')
+        pdf.ln(10)
+
+        # --- SECCIONES DEL PDF (Activos, Pasivos, Patrimonio) ---
+        # Sección de Activos
+        pdf.set_font('Arial', 'B', 14)
+        pdf.cell(0, 10, 'Activos', ln=True)
+        pdf.set_font('Arial', '', 11)
+        for item in datos_balance['desglose']['activos']:
+            # Se usa el manejo de unicode de FPDF2 que soporta UTF-8 por defecto
+            pdf.cell(130, 7, f"  {item['categoria']}")
+            pdf.cell(50, 7, f"$ {item['monto']}", ln=True, align='R')
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(130, 8, 'Total Activos', border='T')
+        pdf.cell(50, 8, f"$ {datos_balance['totales']['total_activos']}", border='T', ln=True, align='R')
+        pdf.ln(8)
+        
+        # (Lógica para Pasivos y Patrimonio - la puedes mantener como estaba)
+        pdf.set_font('Arial', 'B', 14)
+        pdf.cell(0, 10, 'Pasivos', ln=True)
+        pdf.set_font('Arial', '', 11)
+        for item in datos_balance['desglose']['pasivos']:
+            pdf.cell(130, 7, f"  {item['categoria']}")
+            pdf.cell(50, 7, f"$ {item['monto']}", ln=True, align='R')
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(130, 8, 'Total Pasivos', border='T')
+        pdf.cell(50, 8, f"$ {datos_balance['totales']['total_pasivos']}", border='T', ln=True, align='R')
+        pdf.ln(8)
+        
+        pdf.set_font('Arial', 'B', 14)
+        pdf.cell(0, 10, 'Patrimonio', ln=True)
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(130, 8, 'Capital Contable', border='T')
+        pdf.cell(50, 8, f"$ {datos_balance['totales']['capital_contable']}", border='T', ln=True, align='R')
+
+        pdf_bytes = pdf.output()
+        nombre_archivo = f"Balance_General_{empresa_obj.nombre.replace(' ', '_') if empresa_obj else 'Reporte'}_{fecha_hasta_str}.pdf"
+
+        return {"pdf_bytes": pdf_bytes, "nombre_archivo": nombre_archivo}, 200
+
+    except Exception as e:
+        print(f"ERROR al generar PDF en 'generar_balance_pdf': {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {"error": "Error interno al generar el archivo PDF."}, 500

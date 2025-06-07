@@ -1,6 +1,6 @@
 # backend/reports/routes.py
-from flask import Blueprint, request, jsonify
-from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa
+from flask import Blueprint, request, jsonify, Response
+from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa, generar_balance_pdf
 
 reportes_bp = Blueprint('reportes_bp', __name__, url_prefix='/reportes') 
 
@@ -166,3 +166,40 @@ def get_proyectos_de_empresa_endpoint(empresa_id):
     resultado, status_code = obtener_proyectos_por_empresa(empresa_id)
     
     return jsonify(resultado), status_code
+
+
+@reportes_bp.route('/balance-general/pdf', methods=['GET'])
+def descargar_balance_pdf_endpoint():
+    # ... (código de validación de parámetros) ...
+    empresa_id_str = request.args.get('empresa_id')
+    proyecto_id_str = request.args.get('proyecto_id')
+    fecha_hasta_str = request.args.get('fecha_hasta')
+    try:
+        empresa_id = int(empresa_id_str)
+        proyecto_id = int(proyecto_id_str)
+    except ValueError:
+        return jsonify({"error": "Los parámetros 'empresa_id' y 'proyecto_id' deben ser números enteros."}), 400
+    if not all([empresa_id_str, proyecto_id_str, fecha_hasta_str]):
+        return jsonify({
+            "error": "Parámetros insuficientes. Se requieren 'empresa_id', 'proyecto_id' y 'fecha_hasta'."
+        }), 400
+    # Llamar a la función que genera el PDF
+    
+    resultado, status_code = generar_balance_pdf(
+        empresa_id_param=empresa_id,
+        proyecto_id_param=proyecto_id,
+        fecha_hasta_str=fecha_hasta_str
+    )
+
+    if status_code != 200:
+        return jsonify(resultado), status_code
+
+    pdf_bytes = resultado.get("pdf_bytes")
+    nombre_archivo = resultado.get("nombre_archivo")
+
+    # Esta parte es correcta y funcionará una vez que 'pdf_bytes' sea realmente bytes
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"attachment;filename=\"{nombre_archivo}\""}
+    )
