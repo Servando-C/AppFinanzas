@@ -677,7 +677,7 @@ def generar_balance_pdf(empresa_id_param, proyecto_id_param, fecha_hasta_str):
         
         # Sección de Patrimonio
         pdf.set_font('DejaVu', 'B', 14)
-        pdf.cell(0, 10, 'Patrimonio', ln=True)
+        pdf.cell(0, 10, 'Capital Contable', ln=True)
         pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(130, 8, 'Capital Contable', border='T')
         pdf.cell(50, 8, f"$ {totales_data.get('capital_contable', '0.00')}", border='T', ln=True, align='R')
