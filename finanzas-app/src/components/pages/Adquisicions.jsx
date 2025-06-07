@@ -63,7 +63,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (form.empresa_id) {
-      fetch('http://127.0.0.1:5000/empresas/${form.empresa_id}/proyectos')
+      fetch(`http://127.0.0.1:5000/reportes/empresas/${form.empresa_id}/proyectos`)
         .then((res) => res.json())
 .then((data) => setProyectos(data.proyectos))
         .catch(() => setProyectos([]));
