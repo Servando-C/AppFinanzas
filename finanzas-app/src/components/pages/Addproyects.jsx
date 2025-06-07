@@ -70,8 +70,12 @@ useEffect(() => {
     setOpenDialog(false);
   };
 
-  const handleSubmit = async () => {
-    console.log('Datos enviados al servidor:', form);
+const handleSubmit = async () => {
+  const dataToSend = {
+    ...form,
+    empresa_id: Number(form.empresa_id), // <- Aquí lo conviertes antes de enviarlo
+  };
+      console.log('Datos enviados al servidor:', form);
     try {
       const res = await fetch('http://127.0.0.1:5000/reportes/crear/proyecto', {
         method: 'POST',
@@ -119,7 +123,7 @@ useEffect(() => {
   fullWidth
   label="Empresa"
   name="empresa_id"
-  value={form.empresa_id}
+  value={form.empresa_id || ''}
   onChange={handleChange}
   margin="normal"
 >
@@ -129,12 +133,13 @@ useEffect(() => {
     </MenuItem>
   ) : (
     empresas.map((empresa) => (
-      <MenuItem key={empresa.id} value={empresa.id}>
+      <MenuItem key={empresa.id} value={String(empresa.id)}>
         {empresa.nombre}
       </MenuItem>
     ))
   )}
 </TextField>
+
 
 
       <TextField
