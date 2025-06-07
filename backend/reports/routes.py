@@ -1,6 +1,7 @@
 # backend/reports/routes.py
-from flask import Blueprint, request, jsonify
-from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa
+from flask import Blueprint, request, jsonify, Response
+from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa, generar_balance_pdf
+from flask import Response
 
 reportes_bp = Blueprint('reportes_bp', __name__, url_prefix='/reportes') 
 
@@ -166,3 +167,35 @@ def get_proyectos_de_empresa_endpoint(empresa_id):
     resultado, status_code = obtener_proyectos_por_empresa(empresa_id)
     
     return jsonify(resultado), status_code
+
+
+@reportes_bp.route('/balance-general/pdf', methods=['GET'])
+def descargar_balance_pdf_endpoint():
+    # ... (código de obtención y validación de parámetros como lo tienes) ...
+    empresa_id_str = request.args.get('empresa_id')
+    proyecto_id_str = request.args.get('proyecto_id')
+    fecha_hasta_str = request.args.get('fecha_hasta')
+
+    # Validación básica (puedes hacerla más robusta)
+    if not all([empresa_id_str, proyecto_id_str, fecha_hasta_str]):
+        return jsonify({"error": "Parámetros insuficientes."}), 400
+
+    resultado, status_code = generar_balance_pdf(
+        empresa_id_param=empresa_id_str,
+        proyecto_id_param=proyecto_id_str,
+        fecha_hasta_str=fecha_hasta_str
+    )
+
+    if status_code != 200:
+        return jsonify(resultado), status_code
+
+    pdf_bytes = resultado.get("pdf_bytes")
+    nombre_archivo = resultado.get("nombre_archivo")
+
+    # El resto de tu código para crear la respuesta es perfecto.
+    # Flask Response puede manejar el objeto bytearray directamente.
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"attachment;filename=\"{nombre_archivo}\""}
+    )
