@@ -11,6 +11,7 @@ import {
   DialogActions,
   Container,
   Alert,
+  Paper,
 } from '@mui/material';
 
 const CrearProyecto = () => {
@@ -115,8 +116,9 @@ const handleSubmit = async () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Typography variant="h5" gutterBottom>Crear Proyecto</Typography>
+<Container maxWidth="sm" sx={{ mt: 4 }}>
+  <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+    <Typography variant="h5" gutterBottom>Crear Proyecto</Typography>
 
 <TextField
   select
@@ -212,7 +214,8 @@ const handleSubmit = async () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+     </Paper>
+</Container>
   );
 };
 
