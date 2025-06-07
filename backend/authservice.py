@@ -2,7 +2,7 @@ from .models import usuario, rolesEmpresa
 from sqlalchemy import func
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
-from .database import db
+from backend import db
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 

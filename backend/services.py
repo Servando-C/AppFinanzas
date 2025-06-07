@@ -1,6 +1,6 @@
 from .models import *
 from sqlalchemy import func
-from .database import db
+from backend import db
 from decimal import Decimal #Ya que se maneja dinero
 from datetime import datetime, date
 from flask import jsonify

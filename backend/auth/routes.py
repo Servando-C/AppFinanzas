@@ -2,7 +2,7 @@ from ..models import usuario, rolesEmpresa
 from sqlalchemy import func
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
-from ..database import db
+from backend import db
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 from flask import Blueprint, request, jsonify
@@ -11,7 +11,7 @@ from ..authservice import auth_usuario, crear_usuario_capturista
 
 
 # Definición del Blueprint (si no lo tienes ya)
-auth_bp = Blueprint('auth_bp', __name__, url_prefix='/api/auth')
+auth_bp = Blueprint('auth_bp', __name__, url_prefix='/auth')
 
 @auth_bp.route('/login', methods=['POST'])
 def login_endpoint():
