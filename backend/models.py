@@ -84,7 +84,7 @@ class proyecto(db.Model):
 
     #Clave primaria compuesta
     proyecto_id = db.Column(db.Numeric(10, 0), primary_key=True)
-    empresa_id = db.Column(db.Numeric(10, 0), db.ForeignKey('empresa.empresa_id'), primary_key=True)
+    empresa_id = db.Column(db.Numeric(10, 0), db.ForeignKey('empresa.empresa_id'), nullable=False)
 
     #Atributos de la tabla
     nombre = db.Column(db.String(40), nullable=False)
@@ -275,7 +275,7 @@ class tesoreria(db.Model):
     monto_entradas = db.Column(db.Numeric(17, 2), nullable=True)
     monto_salidas = db.Column(db.Numeric(17, 2), nullable=True)
     fecha_registro = db.Column(db.Date, nullable=False)
-    
+        
     #Atributos de la tabla que son foreignKeys desde otras tablas 
     proyecto_id = db.Column(db.Numeric(10, 0), db.ForeignKey('proyecto.proyecto_id'), nullable=False)
     empresa_id = db.Column(db.Numeric(10, 0), db.ForeignKey('empresa.empresa_id'), nullable=False)
