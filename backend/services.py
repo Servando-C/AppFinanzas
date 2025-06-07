@@ -574,7 +574,7 @@ def obtener_proyectos_por_empresa(empresa_id_param):
         proyectos_lista = []
         for proy in proyectos_de_la_empresa:
             proyecto_data = {
-                "empresa_id": float(proy.empresa_id),
+                "proyecto_id": float(proy.proyecto_id),
                 "nombre": proy.nombre,
             }
             proyectos_lista.append(proyecto_data)

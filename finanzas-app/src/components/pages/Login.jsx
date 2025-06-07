@@ -18,25 +18,25 @@ import ColorModeSelect from '../../theme/ColorModeSelect';
 import WebhookIcon from '@mui/icons-material/Webhook';
 import ForgotPassword from '../layout/ForgotPassword';
 import { useNavigate } from 'react-router-dom';
+import AppAppBar from '../layout/aboutUs/AppBar'
 
 const Card = styled(MuiCard)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignSelf: 'center',
-  width: '100%',
-  padding: theme.spacing(4),
-  gap: theme.spacing(2),
-  margin: 'auto',
-  [theme.breakpoints.up('sm')]: {
-    maxWidth: '450px',
-  },
-  boxShadow:
-    'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
-  ...theme.applyStyles('dark', {
-    boxShadow:
-      'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
-  }),
-}));
+   display: 'flex',
+   flexDirection: 'column',
+   width: '100%',
+   padding: theme.spacing(4),
+   gap: theme.spacing(2),
+   margin: 'auto',
+   boxShadow:
+     'hsla(225, 75.90%, 39.00%, 0.10) 0px 5px 15px 0px, hsla(225, 75.90%, 39.00%, 0.1) 0px 4px 30px 10px',
+   [theme.breakpoints.up('sm')]: {
+     width: '450px',
+   },
+   ...theme.applyStyles('dark', {
+     boxShadow:
+       'hsla(209, 68.60%, 43.70%, 0.1) 0px 5px 15px 0px, hsla(209, 68.60%, 43.70%, 0.1) 0px 4px 30px 10px',
+   }),
+ }));
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
   height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
@@ -142,9 +142,9 @@ export default function Login(props) {
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
+      <AppAppBar />
       <SignInContainer direction="column" justifyContent="space-between">
-        <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
-        <Card variant="outlined">
+          <Card variant="outlined">
           <WebhookIcon />
           <Typography
             component="h1"
