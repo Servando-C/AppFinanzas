@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// 1. Importar Link de react-router-dom
 import { Link as RouterLink } from 'react-router-dom';
 import {
   AppBar,
@@ -17,7 +16,7 @@ import {
   CardContent,
 } from '@mui/material';
 
-// --- Componente FinancialNewsTicker (sin cambios) ---
+// --- Componente FinancialNewsTicker (se mantiene igual) ---
 function FinancialNewsTicker() {
   const [headlines, setHeadlines] = useState([]);
 
@@ -31,7 +30,7 @@ function FinancialNewsTicker() {
         setHeadlines(data.articles ? data.articles.map((a) => a.title) : []);
       } catch (err) {
         console.error(err);
-        setHeadlines(["No se pudieron cargar las noticias financieras."]);
+        setHeadlines(["Las noticias no están disponibles en este momento."]);
       }
     }
     fetchNews();
@@ -74,22 +73,18 @@ function FinancialNewsTicker() {
   );
 }
 
-
-// --- Componente Principal Admin ---
+// --- Componente Principal para el Capturista ---
 const drawerWidth = 240;
 const appBarHeight = 64;
 const newsTickerHeight = 40;
 
-// 2. Definir los elementos del menú con sus rutas correspondientes
+// Menú lateral actualizado para el Capturista
 const menuItems = [
-    { text: 'About Us', path: '/' },
-    { text: 'Creat Proyects', path: '/Addproyects' },
-    { text: 'Creat Companies', path: '/RegisterCompanies' },
-    // El botón de reportes está deshabilitado hasta que se cree su ruta
-    { text: 'Ver y Descargar Reportes', path: '/reports', disabled: true },
+    { text: 'Acerca de Nosotros', path: '/' },
+    { text: 'Capturar Adquisiciones', path: '/Adquisicions' },
 ];
 
-export default function Admin() {
+export default function Capturador() {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -101,7 +96,7 @@ export default function Admin() {
         <FinancialNewsTicker />
         <Toolbar>
           <Typography variant="h6" noWrap component="div">
-            Panel del Administrador
+            Panel del Capturista
           </Typography>
         </Toolbar>
       </AppBar>
@@ -120,13 +115,11 @@ export default function Admin() {
       >
         <Box sx={{ overflow: 'auto' }}>
           <List>
-            {/* 3. Mapear el array de menuItems para crear los botones de navegación */}
             {menuItems.map((item) => (
               <ListItem key={item.text} disablePadding>
                  <ListItemButton
                     component={RouterLink}
                     to={item.path}
-                    disabled={item.disabled || false} // Aplica el estado deshabilitado
                  >
                    <ListItemText primary={item.text} />
                  </ListItemButton>
@@ -144,50 +137,50 @@ export default function Admin() {
             mt: `${(appBarHeight + newsTickerHeight) / 8}px`,
          }}
       >
-        {/* El contenido de bienvenida se mantiene aquí porque esta es la página /Admin */}
+        {/* Mensaje de bienvenida y tarjetas con datos felices */}
         <Typography variant="h4" gutterBottom>
-          Bienvenido al Panel de Administración
+          ¡Que tengas un excelente día Capturista!
         </Typography>
 
+{/* Contenedor de tarjetas con mayor espaciado */}
+<Grid container spacing={4}>
+  {/* Tarjeta 1 */}
+  <Grid item xs={12} md={4}>
+    <Card sx={{ height: '100%', backgroundColor: '#f5f5f5' }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>Dato Feliz: Poder de la Sonrisa</Typography>
+        <Typography variant="body2">
+          ¡Sonreír puede mejorar tu estado de ánimo y reducir el estrés! Estudios demuestran que una sonrisa sincera libera endorfinas, haciéndote sentir más feliz.
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
 
-        {/* Contenedor de tarjetas con mayor espaciado */}
-        <Grid container spacing={4}>
-          {/* Tarjeta 1 */}
-          <Grid item xs={12} md={4}>
-            <Card sx={{ height: '100%', backgroundColor: '#f5f5f5' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Tip: Automatización</Typography>
-                <Typography variant="body2">
-                  El 40% del tiempo de un trabajador se pierde en tareas repetitivas. La automatización de procesos es clave para recuperar eficiencia y enfocarse en lo importante.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+  {/* Tarjeta 2 */}
+  <Grid item xs={12} md={4}>
+    <Card sx={{ height: '100%', backgroundColor: '#e3f2fd' }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>Alegría: Pequeños Gestos</Typography>
+        <Typography variant="body2">
+          Ayudar a otros, incluso con pequeños gestos, activa el centro de recompensa del cerebro, generando una sensación de felicidad y propósito.
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
 
-          {/* Tarjeta 2 */}
-          <Grid item xs={12} md={4}>
-            <Card sx={{ height: '100%', backgroundColor: '#e3f2fd' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Dato: Metas Claras</Typography>
-                <Typography variant="body2">
-                  Los equipos que establecen y revisan metas semanales tienen un 78% más de probabilidades de alcanzar sus objetivos principales a largo plazo.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+  {/* Tarjeta 3 */}
+  <Grid item xs={12} md={4}>
+    <Card sx={{ height: '100%', backgroundColor: '#f0f4c3' }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>Optimismo: Sueños Cumplidos</Typography>
+        <Typography variant="body2">
+          Visualizar tus metas alcanzadas y celebrar cada pequeño avance te acerca a tus sueños y llena tu día de optimismo y energía.
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+</Grid>
 
-          {/* Tarjeta 3 */}
-          <Grid item xs={12} md={4}>
-            <Card sx={{ height: '100%', backgroundColor: '#f0f4c3' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Tip: Comunicación</Typography>
-                <Typography variant="body2">
-                  Mejorar la claridad y frecuencia de la comunicación en un equipo puede incrementar la productividad general hasta en un 25%. ¡Las reuniones efectivas son oro!
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
       </Box>
     </Box>
   );
