@@ -53,35 +53,22 @@ export default function AdquisicionForm() {
   const [error, setError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarErrorOpen, setSnackbarErrorOpen] = useState(false);
-  const [fechasTesoreria, setFechasTesoreria] = useState([]);
-
-
 
 useEffect(() => {
   fetch('http://127.0.0.1:5000/reportes/empresas')
     .then((res) => res.json())
-    .then((data) => setEmpresas(data.empresas)) 
+    .then((data) => setEmpresas(data.empresas)) // <- Aquí cambia a data.empresas
     .catch(() => setEmpresas([]));
 }, []);
 
   useEffect(() => {
-  if (form.empresa_id) {
-    fetch(`http://127.0.0.1:5000/empresas/${form.empresa_id}/proyectos`)
-      .then((res) => res.json())
-      .then((data) => setProyectos(data.proyectos)) 
-      .catch(() => setProyectos([]));
-  }
-}, [form.empresa_id]);
-
-useEffect(() => {
-  if (form.empresa_id && form.proyecto_id) {
-    fetch(`http://127.0.0.1:5000/tesoreria/fechas/${form.empresa_id}/${form.proyecto_id}`)
-      .then((res) => res.json())
-      .then((data) => setFechasTesoreria(data.fechas || []))
-      .catch(() => setFechasTesoreria([]));
-  }
-}, [form.empresa_id, form.proyecto_id]);
-
+    if (form.empresa_id) {
+      fetch('http://127.0.0.1:5000/empresas/${form.empresa_id}/proyectos')
+        .then((res) => res.json())
+.then((data) => setProyectos(data.proyectos))
+        .catch(() => setProyectos([]));
+    }
+  }, [form.empresa_id]);
 
 const handleChange = (e) => {
   const { name, value } = e.target;
@@ -198,6 +185,7 @@ const renderTextField = (field) => {
     <Grid item xs={12} md={4} key={field}>
       <TextField
         fullWidth
+        type={field.includes('fecha') ? 'date' : 'text'}
         name={field}
         label={field.replaceAll('_', ' ').toUpperCase()}
         value={form[field]}
@@ -245,46 +233,25 @@ const renderTextField = (field) => {
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
               <InputLabel>Proyecto</InputLabel>
               <Select name="proyecto_id" value={form.proyecto_id} onChange={handleChange}>
-  {proyectos.length ? (
-    proyectos.map((p) => (
-      <MenuItem key={p.proyecto_id} value={p.proyecto_id}>
-        {p.nombre}
-      </MenuItem>
-    ))
-  ) : (
-    <MenuItem disabled>Error en servidor, no se pudieron cargar los datos</MenuItem>
-  )}
-</Select>
+                {proyectos.length ? (
+proyectos.map((p) => (
+  <MenuItem key={p.proyecto_id} value={p.proyecto_id}>
+    {p.nombre}
+  </MenuItem>
+))                ) : (
+                  <MenuItem disabled>Error en servidor, no se pudieron cargar los datos</MenuItem>
+                )}
+              </Select>
             </FormControl>
           </Grid>
-<Grid item xs={12} md={6}>
-  <FormControl fullWidth sx={{ minWidth: 200 }}>
-    <InputLabel>Fecha Tesorería</InputLabel>
-    <Select
-      name="fecha_adquisicion"
-      value={form.fecha_adquisicion}
-      onChange={handleChange}
-      label="Fecha Tesorería"
-    >
-      {fechasTesoreria.length ? (
-        fechasTesoreria.map((fecha) => (
-          <MenuItem key={fecha} value={fecha}>
-            {fecha}
-          </MenuItem>
-        ))
-      ) : (
-        <MenuItem disabled>Seleccione empresa y proyecto</MenuItem>
-      )}
-    </Select>
-  </FormControl>
-</Grid>
 
             {[
             'nombre_bien',
             'desc_tipo_bien',
             'monto_total',
             'monto_inicial',
-            'forma_pago',
+            'fecha_adquisicion',
+            'forma_pago_char',
             'meses_pago'
              ].map(renderTextField)}
 
