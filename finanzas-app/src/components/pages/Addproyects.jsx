@@ -33,7 +33,7 @@ const CrearProyecto = () => {
 
   // Cargar empresas
 useEffect(() => {
-  fetch('http://127.0.0.1:5000/api/reportes/empresas')
+  fetch('/api/reportes/empresas')
     .then((res) => res.json())
     .then((data) => setEmpresas(data.empresas)) // <- Aquí cambia a data.empresas
     .catch(() => setEmpresas([]));
@@ -78,7 +78,7 @@ const handleSubmit = async () => {
   };
       console.log('Datos enviados al servidor:', form);
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/reportes/crear/proyecto', {
+      const res = await fetch('/api/reportes/crear/proyecto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
