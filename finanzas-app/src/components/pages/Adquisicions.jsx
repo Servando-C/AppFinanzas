@@ -55,7 +55,7 @@ export default function AdquisicionForm() {
   const [snackbarErrorOpen, setSnackbarErrorOpen] = useState(false);
 
 useEffect(() => {
-  fetch('http://127.0.0.1:5000/reportes/empresas')
+  fetch('/api/reportes/empresas')
     .then((res) => res.json())
     .then((data) => setEmpresas(data.empresas)) // <- Aquí cambia a data.empresas
     .catch(() => setEmpresas([]));
@@ -63,7 +63,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (form.empresa_id) {
-      fetch(`http://127.0.0.1:5000/reportes/empresas/${form.empresa_id}/proyectos`)
+      fetch(`/api/reportes/empresas/${form.empresa_id}/proyectos`)
         .then((res) => res.json())
 .then((data) => setProyectos(data.proyectos))
         .catch(() => setProyectos([]));
@@ -140,7 +140,7 @@ const handleChange = (e) => {
       console.log('Datos enviados al servidor:', dataToSend);
 
     try {
-      const res = await fetch('http://127.0.0.1:5000/reportes/nueva/adquisicion', {
+      const res = await fetch('/api/reportes/nueva/adquisicion', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

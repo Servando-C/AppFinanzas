@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify, Response
 from ..services import nueva_empresa, nuevo_proyecto, agregar_adquisicion, send_tesoreria_fechas, calcular_balance_general, send_empresas, obtener_proyectos_por_empresa, generar_balance_pdf
 from flask import Response
 
-reportes_bp = Blueprint('reportes_bp', __name__, url_prefix='/reportes') 
+reportes_bp = Blueprint('reportes_bp', __name__)
 
 @reportes_bp.route('/crear/empresa', methods=['POST'])
 def crear_nueva_empresa_endpoint():

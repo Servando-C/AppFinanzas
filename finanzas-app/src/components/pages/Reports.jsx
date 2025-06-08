@@ -35,7 +35,7 @@ export default function Reports() {
   // --- LÓGICA DE CARGA DE EMPRESAS ---
   useEffect(() => {
     setLoadingEmpresas(true);
-    fetch('http://127.0.0.1:5000/reportes/empresas')
+    fetch('/api/reportes/empresas')
       .then((res) => res.json())
       .then((data) => setEmpresas(data.empresas || []))
       .catch((error) => {
@@ -56,7 +56,7 @@ export default function Reports() {
     }
 
     setLoadingProyectos(true);
-    fetch(`http://127.0.0.1:5000/reportes/empresas/${form.empresa_id}/proyectos`)
+    fetch(`/api/reportes/empresas/${form.empresa_id}/proyectos`)
       .then((res) => res.json())
       .then((data) => setProyectos(data.proyectos || []))
       .catch((error) => {
@@ -73,7 +73,7 @@ export default function Reports() {
       setSelectedFecha('');
       setLoadingFechas(true);
 
-      fetch(`http://127.0.0.1:5000/reportes/tesoreria/fechas/${form.empresa_id}/${form.proyecto_id}`)
+      fetch(`/api/reportes/tesoreria/fechas/${form.empresa_id}/${form.proyecto_id}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && Array.isArray(data.fechas)) {
@@ -112,7 +112,7 @@ export default function Reports() {
       alert('Por favor, seleccione una empresa, un proyecto y una fecha.');
       return;
     }
-    const reportUrl = `http://127.0.0.1:5000/reportes/balance-general/pdf?empresa_id=${form.empresa_id}&proyecto_id=${form.proyecto_id}&fecha_hasta=${selectedFecha}`;
+    const reportUrl = `/api/reportes/balance-general/pdf?empresa_id=${form.empresa_id}&proyecto_id=${form.proyecto_id}&fecha_hasta=${selectedFecha}`;
     window.open(reportUrl, '_blank');
   };
 
