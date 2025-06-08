@@ -17,7 +17,7 @@ const SignUp = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-  fetch('http://127.0.0.1:5000/reportes/empresas')
+  fetch('http://127.0.0.1:5000/api/reportes/empresas')
       .then(response => response.json())
       .then(data => {
         setEmpresas(data.empresas);
@@ -49,7 +49,7 @@ const SignUp = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    fetch('http://127.0.0.1:5000/auth/signup', {
+    fetch('http://127.0.0.1:5000/api/auth/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
